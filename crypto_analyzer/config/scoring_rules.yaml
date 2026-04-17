@@ -1,0 +1,151 @@
+# 技术评分规则
+# 基于现有Polymarket交易系统的评分体系
+
+technical_scoring:
+  # RSI评分规则
+  rsi:
+    oversold_threshold: 30
+    overbought_threshold: 70
+    optimal_range: [40, 60]
+    
+    scoring:
+      below_30: 90  # 严重超卖，强烈买入信号
+      30_40: 70     # 超卖区域，买入信号
+      40_60: 50     # 中性区域
+      60_70: 30     # 超买区域，卖出信号
+      above_70: 10  # 严重超买，强烈卖出信号
+
+  # MACD评分规则
+  macd:
+    scoring:
+      histogram_positive: 70    # MACD柱状图为正
+      histogram_negative: 30    # MACD柱状图为负
+      golden_cross: 90          # 金叉信号
+      death_cross: 10           # 死叉信号
+      above_signal: 60          # MACD线在信号线上方
+      below_signal: 40          # MACD线在信号线下方
+
+  # 移动平均线评分规则
+  moving_averages:
+    periods: [7, 20, 50, 200]
+    
+    scoring:
+      price_above_all_mas: 80   # 价格在所有均线上方
+      price_below_all_mas: 20   # 价格在所有均线下方
+      short_above_long: 70      # 短期均线在长期均线上方
+      short_below_long: 30      # 短期均线在长期均线下方
+      ma_alignment_bullish: 90  # 均线多头排列
+      ma_alignment_bearish: 10  # 均线空头排列
+
+  # 布林带评分规则
+  bollinger_bands:
+    scoring:
+      near_upper_band: 30       # 接近上轨，可能超买
+      near_lower_band: 70       # 接近下轨，可能超卖
+      middle_band: 50           # 在中轨附近
+      breakout_upper: 20        # 突破上轨
+      breakout_lower: 80        # 突破下轨
+      squeeze_detected: 60      # 布林带收缩，波动率低
+
+  # 成交量评分规则
+  volume:
+    scoring:
+      volume_spike_up: 70       # 成交量放大上涨
+      volume_spike_down: 30     # 成交量放大下跌
+      volume_decline: 40        # 成交量萎缩
+      above_average: 60         # 高于平均成交量
+      below_average: 40         # 低于平均成交量
+
+# AI分析置信度规则
+ai_confidence:
+  deepseek:
+    confidence_mapping:
+      "非常确定": 0.9
+      "比较确定": 0.7
+      "一般确定": 0.5
+      "不太确定": 0.3
+      "非常不确定": 0.1
+
+  minimax:
+    confidence_mapping:
+      "high": 0.9
+      "medium": 0.7
+      "low": 0.5
+      "very_low": 0.3
+
+  # 双模型一致性评分
+  consensus_scoring:
+    full_agreement: 0.9    # 完全一致
+    partial_agreement: 0.7 # 部分一致
+    neutral: 0.5           # 中性
+    partial_disagreement: 0.3 # 部分分歧
+    full_disagreement: 0.1 # 完全分歧
+
+# 恐慌情绪评分规则
+sentiment_scoring:
+  fear_greed_index:
+    extreme_fear: 90       # 极度恐慌，买入机会
+    fear: 70              # 恐慌
+    neutral: 50           # 中性
+    greed: 30             # 贪婪
+    extreme_greed: 10     # 极度贪婪，卖出信号
+
+  social_media:
+    very_bearish: 90      # 社交媒体极度看跌
+    bearish: 70          # 看跌
+    neutral: 50          # 中性
+    bullish: 30          # 看涨
+    very_bullish: 10     # 社交媒体极度看涨
+
+  news_sentiment:
+    very_negative: 90    # 新闻极度负面
+    negative: 70        # 负面
+    neutral: 50         # 中性
+    positive: 30        # 正面
+    very_positive: 10   # 新闻极度正面
+
+# 综合信号生成规则
+composite_signals:
+  # 权重分配
+  weights:
+    technical: 0.4
+    ai_analysis: 0.4
+    sentiment: 0.2
+
+  # 信号阈值
+  thresholds:
+    strong_buy: 80
+    buy: 60
+    neutral: 40
+    sell: 20
+    strong_sell: 0
+
+  # 信号描述映射
+  signal_descriptions:
+    strong_buy: "强烈买入 - 技术、AI、情绪指标均显示强烈看涨"
+    buy: "买入 - 多数指标显示看涨信号"
+    neutral: "观望 - 指标矛盾或无明显趋势"
+    sell: "卖出 - 多数指标显示看跌信号"
+    strong_sell: "强烈卖出 - 技术、AI、情绪指标均显示强烈看跌"
+
+# 支撑阻力位计算规则
+support_resistance:
+  # 计算方法
+  methods:
+    - pivot_points      # 枢轴点法
+    - fibonacci         # 斐波那契回调
+    - moving_averages   # 移动平均线
+    - previous_high_low # 前期高低点
+
+  # 有效周期
+  valid_periods:
+    short_term: 24      # 短期(24小时)
+    medium_term: 168    # 中期(7天)
+    long_term: 720      # 长期(30天)
+
+  # 强度评分
+  strength_scoring:
+    multiple_touches: 0.9    # 多次触碰
+    recent_confirmation: 0.7 # 近期确认
+    historical_level: 0.5    # 历史水平
+    weak_level: 0.3          # 弱水平

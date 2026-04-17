@@ -1,0 +1,19 @@
+============================================================
+简化版虚拟币分析系统 - Web API
+============================================================
+项目目录: /home/billyqqq/.openclaw/workspaceopenclaw gateway restart/crypto_analyzer
+访问地址: http://localhost:5002
+============================================================
+API端点:
+  POST /api/analyze      - 分析单个币种
+  POST /api/analyze/batch - 批量分析
+  GET  /api/symbols      - 获取币种列表
+  GET  /api/status       - 系统状态
+  GET  /api/history/<symbol> - 分析历史
+  GET  /api/config       - 系统配置
+  GET  /enhanced         - 增强版仪表板
+============================================================
+ * Serving Flask app 'app_simple'
+ * Debug mode: off
+Address already in use
+Port 5002 is in use by another program. Either identify and stop that program, or start the server with a different port.

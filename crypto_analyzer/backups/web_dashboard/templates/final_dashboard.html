@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>虚拟币分析系统</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: #f0f2f5; }
+        .container { max-width: 900px; margin: 0 auto; }
+        
+        .header { background: linear-gradient(135deg, #1e3c72, #2a5298); color: white; padding: 20px; border-radius: 10px; text-align: center; margin-bottom: 20px; }
+        .header h1 { margin: 0 0 10px 0; }
+        
+        .card { background: white; border-radius: 10px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .card-title { font-size: 18px; font-weight: bold; color: #333; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid #007bff; }
+        
+        .controls { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 15px; }
+        .controls label { font-weight: bold; width: 100%; margin-bottom: 5px; }
+        .btn-group { display: flex; gap: 5px; flex-wrap: wrap; }
+        .btn { padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; font-size: 14px; }
+        .btn-primary { background: #007bff; color: white; }
+        .btn-primary.active { background: #0056b3; }
+        .btn-secondary { background: #6c757d; color: white; }
+        .btn-secondary.active { background: #545b62; }
+        
+        .analyze-btn { width: 100%; padding: 15px; font-size: 18px; background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; border-radius: 10px; cursor: pointer; margin-top: 15px; }
+        .analyze-btn:hover { opacity: 0.9; }
+        .analyze-btn:disabled { background: #ccc; cursor: not-allowed; }
+        
+        .price-section { text-align: center; padding: 20px; background: #f8f9fa; border-radius: 10px; }
+        .price { font-size: 36px; font-weight: bold; color: #333; }
+        .change { font-size: 20px; margin-top: 5px; }
+        .change.up { color: #28a745; }
+        .change.down { color: #dc3545; }
+        
+        .result-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .result-item { background: #f8f9fa; padding: 15px; border-radius: 8px; }
+        .result-label { font-size: 12px; color: #666; margin-bottom: 5px; }
+        .result-value { font-size: 20px; font-weight: bold; color: #333; }
+        
+        .signal-badge { display: inline-block; padding: 8px 20px; border-radius: 20px; font-weight: bold; font-size: 16px; margin-top: 10px; }
+        .signal-buy { background: #d4edda; color: #155724; }
+        .signal-sell { background: #f8d7da; color: #721c24; }
+        .signal-neutral { background: #fff3cd; color: #856404; }
+        
+        .ai-section { margin-top: 15px; }
+        .ai-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #eee; }
+        .ai-item:last-child { border-bottom: none; }
+        
+        .indicator-row { display: flex; justify-content: space-between; padding: 10px; background: #f8f9fa; margin: 5px 0; border-radius: 5px; }
+        .indicator-name { font-weight: bold; }
+        .indicator-value { color: #007bff; }
+        
+        .level-row { display: flex; justify-content: space-between; padding: 8px; background: #f8f9fa; margin: 3px 0; border-radius: 5px; }
+        .level-price { font-weight: bold; }
+        .level-strength { font-size: 12px; color: #666; }
+        
+        .loading { display: none; text-align: center; padding: 20px; }
+        .spinner { border: 4px solid #f3f3f3; border-top: 4px solid #007bff; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 0 auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        .error { color: #dc3545; background: #f8d7da; padding: 10px; border-radius: 5px; margin: 10px 0; display: none; }
+        
+        .waiting { text-align: center; padding: 40px; color: #666; }
+        .waiting-icon { font-size: 48px; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 虚拟币AI分析系统</h1>
+            <div>双AI模型分析 · 实时数据 · 专业指标</div>
+        </div>
+        
+        <div class="card">
+            <div class="card-title">⚙️ 分析设置</div>
+            
+            <div class="controls">
+                <label>选择币种:</label>
+                <div class="btn-group">
+                    <button class="btn btn-primary active" data-coin="BTC" onclick="selectCoin('BTC')">BTC 比特币</button>
+                    <button class="btn btn-secondary" data-coin="ETH" onclick="selectCoin('ETH')">ETH 以太坊</button>
+                    <button class="btn btn-secondary" data-coin="SOL" onclick="selectCoin('SOL')">SOL Solana</button>
+                </div>
+            </div>
+            
+            <div class="controls">
+                <label>时间框架:</label>
+                <div class="btn-group">
+                    <button class="btn btn-primary active" data-timeframe="1h" onclick="selectTimeframe('1h')">1小时</button>
+                    <button class="btn btn-secondary" data-timeframe="4h" onclick="selectTimeframe('4h')">4小时</button>
+                    <button class="btn btn-secondary" data-timeframe="24h" onclick="selectTimeframe('24h')">24小时</button>
+                </div>
+            </div>
+            
+            <div class="controls">
+                <label>AI模型:</label>
+                <div class="btn-group">
+                    <button class="btn btn-primary active" data-model="both" onclick="selectModel('both')">双模型</button>
+                    <button class="btn btn-secondary" data-model="deepseek" onclick="selectModel('deepseek')">DeepSeek</button>
+                    <button class="btn btn-secondary" data-model="minimax" onclick="selectModel('minimax')">MiniMax</button>
+                </div>
+            </div>
+            
+            <button class="analyze-btn" id="analyzeBtn" onclick="doAnalyze()">
+                🔍 开始AI分析
+            </button>
+            
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>分析中，请稍候...</p>
+            </div>
+            
+            <div class="error" id="errorMsg"></div>
+        </div>
+        
+        <div class="card" id="resultsCard" style="display: none;">
+            <div class="card-title">📊 分析结果</div>
+            
+            <div class="price-section">
+                <div class="price" id="resPrice">$--</div>
+                <div class="change" id="resChange">--%</div>
+                <div id="resSignal" class="signal-badge">--</div>
+            </div>
+            
+            <div class="result-grid" style="margin-top: 20px;">
+                <div class="result-item">
+                    <div class="result-label">综合评分</div>
+                    <div class="result-value" id="resScore">--</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-label">AI方向</div>
+                    <div class="result-value" id="resDirection">--</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-label">AI置信度</div>
+                    <div class="result-value" id="resConfidence">--%</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-label">模型一致性</div>
+                    <div class="result-value" id="resAgreement">--%</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card" id="aiCard" style="display: none;">
+            <div class="card-title">🤖 双模型AI分析详情</div>
+            <div id="aiContent">等待分析...</div>
+        </div>
+        
+        <div class="card" id="deepseekCard" style="display: none;">
+            <div class="card-title">🔵 DeepSeek 技术分析</div>
+            <div id="deepseekContent">等待分析...</div>
+        </div>
+        
+        <div class="card" id="minimaxCard" style="display: none;">
+            <div class="card-title">🟡 MiniMax 情绪分析</div>
+            <div id="minimaxContent">等待分析...</div>
+        </div>
+        
+        <div class="card" id="techCard" style="display: none;">
+            <div class="card-title">📈 技术指标</div>
+            <div id="techContent">等待分析...</div>
+        </div>
+        
+        <div class="card" id="levelsCard" style="display: none;">
+            <div class="card-title">🎯 支撑与阻力位</div>
+            <div class="result-grid">
+                <div>
+                    <h4 style="color: #28a745;">支撑位</h4>
+                    <div id="supportContent">--</div>
+                </div>
+                <div>
+                    <h4 style="color: #dc3545;">阻力位</h4>
+                    <div id="resistanceContent">--</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card" id="waitCard">
+            <div class="waiting">
+                <div class="waiting-icon">📊</div>
+                <h3>准备就绪</h3>
+                <p>请选择币种和时间框架，然后点击"开始AI分析"按钮</p>
+            </div>
+        </div>
+        
+        <div style="text-align: center; margin-top: 20px; color: #666; font-size: 12px;">
+            系统状态: <span style="color: #28a745;" id="sysStatus">正常</span> | 
+            最后更新: <span id="lastTime">--</span>
+        </div>
+    </div>
+    
+    <script>
+        // 当前选择
+        var selectedCoin = 'BTC';
+        var selectedTimeframe = '1h';
+        var selectedModel = 'both';
+        
+        // 选择函数
+        function selectCoin(coin) {
+            selectedCoin = coin;
+            document.querySelectorAll('[data-coin]').forEach(function(btn) {
+                btn.classList.remove('active');
+                if (btn.dataset.coin === coin) btn.classList.add('active');
+            });
+        }
+        
+        function selectTimeframe(tf) {
+            selectedTimeframe = tf;
+            document.querySelectorAll('[data-timeframe]').forEach(function(btn) {
+                btn.classList.remove('active');
+                if (btn.dataset.timeframe === tf) btn.classList.add('active');
+            });
+        }
+        
+        function selectModel(model) {
+            selectedModel = model;
+            document.querySelectorAll('[data-model]').forEach(function(btn) {
+                btn.classList.remove('active');
+                if (btn.dataset.model === model) btn.classList.add('active');
+            });
+        }
+        
+        // 显示错误
+        function showError(msg) {
+            var errEl = document.getElementById('errorMsg');
+            errEl.textContent = '错误: ' + msg;
+            errEl.style.display = 'block';
+            setTimeout(function() { errEl.style.display = 'none'; }, 5000);
+        }
+        
+        // 分析函数
+        function doAnalyze() {
+            var btn = document.getElementById('analyzeBtn');
+            var loading = document.getElementById('loading');
+            
+            btn.disabled = true;
+            btn.textContent = '分析中...';
+            loading.style.display = 'block';
+            
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', '/api/analyze', true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4) {
+                    btn.disabled = false;
+                    btn.textContent = '🔍 开始AI分析';
+                    loading.style.display = 'none';
+                    
+                    if (xhr.status === 200) {
+                        try {
+                            var data = JSON.parse(xhr.responseText);
+                            displayResults(data);
+                        } catch (e) {
+                            showError('数据解析失败: ' + e.message);
+                        }
+                    } else {
+                        showError('请求失败: HTTP ' + xhr.status);
+                    }
+                }
+            };
+            
+            xhr.onerror = function() {
+                btn.disabled = false;
+                btn.textContent = '🔍 开始AI分析';
+                loading.style.display = 'none';
+                showError('网络错误，请检查服务是否运行');
+            };
+            
+            var requestData = JSON.stringify({
+                symbol: selectedCoin,
+                timeframe: selectedTimeframe,
+                ai_model: selectedModel
+            });
+            
+            xhr.send(requestData);
+        }
+        
+        // 显示结果
+        function displayResults(data) {
+            // 隐藏等待卡，显示结果卡
+            document.getElementById('waitCard').style.display = 'none';
+            document.getElementById('resultsCard').style.display = 'block';
+            document.getElementById('aiCard').style.display = 'block';
+            document.getElementById('techCard').style.display = 'block';
+            document.getElementById('levelsCard').style.display = 'block';
+            document.getElementById('deepseekCard').style.display = 'block';
+            document.getElementById('minimaxCard').style.display = 'block';
+            
+            // 价格
+            var price = data.price_data.current_price;
+            var change = data.price_data.price_change_pct_24h;
+            document.getElementById('resPrice').textContent = '$' + price.toLocaleString();
+            var changeEl = document.getElementById('resChange');
+            changeEl.textContent = (change >= 0 ? '+' : '') + change.toFixed(2) + '%';
+            changeEl.className = 'change ' + (change >= 0 ? 'up' : 'down');
+            
+            // 信号
+            var signal = data.signal.signal;
+            var signalEl = document.getElementById('resSignal');
+            signalEl.textContent = signal;
+            signalEl.className = 'signal-badge';
+            if (signal.indexOf('BUY') >= 0) {
+                signalEl.classList.add('signal-buy');
+            } else if (signal.indexOf('SELL') >= 0) {
+                signalEl.classList.add('signal-sell');
+            } else {
+                signalEl.classList.add('signal-neutral');
+            }
+            
+            // 评分
+            document.getElementById('resScore').textContent = data.composite_score.composite + '/100';
+            
+            // 双模型共识
+            var ai = data.ai_analysis.consensus;
+            document.getElementById('resDirection').textContent = 
+                ai.direction === 'bullish' ? '看涨' : 
+                ai.direction === 'bearish' ? '看跌' : '中性';
+            document.getElementById('resConfidence').textContent = ai.confidence + '%';
+            document.getElementById('resAgreement').textContent = (ai.agreement_score || 0) + '%';
+            
+            // 共识内容
+            document.getElementById('aiContent').innerHTML = 
+                '<p><strong>双模型共识方向:</strong> ' + 
+                (ai.direction === 'bullish' ? '<span style="color:#28a745">看涨</span>' : 
+                 ai.direction === 'bearish' ? '<span style="color:#dc3545">看跌</span>' : 
+                 '<span style="color:#ffc107">中性</span>') + '</p>' +
+                '<p><strong>看涨置信率:</strong> ' + ai.confidence + '%</p>' +
+                '<p><strong>看跌置信率:</strong> ' + (100 - ai.confidence) + '%</p>' +
+                '<p><strong>模型一致性:</strong> ' + ai.agreement_score + '%</p>' +
+                '<p style="margin-top:10px;"><strong>共识理由:</strong></p><p>' + ai.reasoning + '</p>';
+            
+            // DeepSeek分析
+            if (data.ai_analysis.deepseek) {
+                var ds = data.ai_analysis.deepseek;
+                var dsDirColor = ds.direction === 'bullish' ? '#28a745' : ds.direction === 'bearish' ? '#dc3545' : '#ffc107';
+                var dsHtml = 
+                    '<div style="margin-bottom:15px;">' +
+                    '<p><strong>方向:</strong> <span style="color:' + dsDirColor + ';font-weight:bold;">' + 
+                    (ds.direction === 'bullish' ? '看涨' : ds.direction === 'bearish' ? '看跌' : '中性') + '</span></p>' +
+                    '<p><strong>看涨置信率:</strong> <span style="color:#28a745">' + ds.bullish_confidence + '%</span></p>' +
+                    '<p><strong>看跌置信率:</strong> <span style="color:#dc3545">' + ds.bearish_confidence + '%</span></p>' +
+                    '<p style="margin-top:10px;">' + ds.reasoning + '</p>' +
+                    '</div>' +
+                    '<h4 style="color:#28a745;">关键支撑位:</h4>';
+                if (ds.key_support_levels) {
+                    ds.key_support_levels.forEach(function(s) {
+                        dsHtml += '<div class="level-row"><span class="level-price">$' + s.level.toLocaleString() + '</span><span class="level-strength">' + s.type + ' 强度' + s.strength + '%</span></div>';
+                    });
+                }
+                dsHtml += '<h4 style="color:#dc3545;margin-top:10px;">关键阻力位:</h4>';
+                if (ds.key_resistance_levels) {
+                    ds.key_resistance_levels.forEach(function(r) {
+                        dsHtml += '<div class="level-row"><span class="level-price">$' + r.level.toLocaleString() + '</span><span class="level-strength">' + r.type + ' 强度' + r.strength + '%</span></div>';
+                    });
+                }
+                document.getElementById('deepseekContent').innerHTML = dsHtml;
+            }
+            
+            // MiniMax分析
+            if (data.ai_analysis.minimax) {
+                var mm = data.ai_analysis.minimax;
+                var mmDirColor = mm.direction === 'bullish' ? '#28a745' : mm.direction === 'bearish' ? '#dc3545' : '#ffc107';
+                var sentiment = mm.sentiment_details || {};
+                var mmHtml = 
+                    '<div style="margin-bottom:15px;">' +
+                    '<p><strong>方向:</strong> <span style="color:' + mmDirColor + ';font-weight:bold;">' + 
+                    (mm.direction === 'bullish' ? '看涨' : mm.direction === 'bearish' ? '看跌' : '中性') + '</span></p>' +
+                    '<p><strong>看涨置信率:</strong> <span style="color:#28a745">' + mm.bullish_confidence + '%</span></p>' +
+                    '<p><strong>看跌置信率:</strong> <span style="color:#dc3545">' + mm.bearish_confidence + '%</span></p>' +
+                    '<p><strong>恐慌指数:</strong> ' + (sentiment.fear_greed_index || '--') + ' (' + (sentiment.fear_greed_classification || '--') + ')</p>' +
+                    '<p><strong>风险等级:</strong> ' + (sentiment.risk_level || '--') + '</p>' +
+                    '<p style="margin-top:10px;">' + mm.reasoning + '</p>' +
+                    '</div>' +
+                    '<h4 style="color:#28a745;">关键支撑位:</h4>';
+                if (mm.key_support_levels) {
+                    mm.key_support_levels.forEach(function(s) {
+                        mmHtml += '<div class="level-row"><span class="level-price">$' + s.level.toLocaleString() + '</span><span class="level-strength">' + s.type + ' 强度' + s.strength + '%</span></div>';
+                    });
+                }
+                mmHtml += '<h4 style="color:#dc3545;margin-top:10px;">关键阻力位:</h4>';
+                if (mm.key_resistance_levels) {
+                    mm.key_resistance_levels.forEach(function(r) {
+                        mmHtml += '<div class="level-row"><span class="level-price">$' + r.level.toLocaleString() + '</span><span class="level-strength">' + r.type + ' 强度' + r.strength + '%</span></div>';
+                    });
+                }
+                document.getElementById('minimaxContent').innerHTML = mmHtml;
+            }
+            
+            // 技术指标
+            var techHtml = '';
+            var core = data.technical_indicators.core_indicators;
+            if (core.rsi) {
+                techHtml += '<div class="indicator-row"><span class="indicator-name">RSI</span><span class="indicator-value">' + core.rsi.value.toFixed(2) + '</span></div>';
+            }
+            if (core.macd) {
+                var macdText = core.macd.value.toFixed(2) + ' (' + (core.macd.value > 0 ? '看涨' : '看跌') + ')';
+                techHtml += '<div class="indicator-row"><span class="indicator-name">MACD</span><span class="indicator-value">' + macdText + '</span></div>';
+            }
+            if (core.moving_averages) {
+                var maText = core.moving_averages.signal === 'bullish' ? '多头排列' : 
+                            core.moving_averages.signal === 'bearish' ? '空头排列' : '中性';
+                techHtml += '<div class="indicator-row"><span class="indicator-name">移动平均线</span><span class="indicator-value">' + maText + '</span></div>';
+            }
+            if (core.bollinger_bands) {
+                techHtml += '<div class="indicator-row"><span class="indicator-name">布林带位置</span><span class="indicator-value">' + core.bollinger_bands.position.toFixed(1) + '%</span></div>';
+            }
+            document.getElementById('techContent').innerHTML = techHtml || '<p>暂无数据</p>';
+            
+            // 支撑阻力位 (综合)
+            var sr = data.support_resistance;
+            var supportHtml = '<h5 style="color:#007bff;">综合支撑位:</h5>';
+            if (sr.key_supports && sr.key_supports.length > 0) {
+                sr.key_supports.forEach(function(s) {
+                    supportHtml += '<div class="level-row"><span class="level-price">$' + s.level.toLocaleString() + '</span><span class="level-strength">' + (s.type || '支撑') + '</span></div>';
+                });
+            }
+            document.getElementById('supportContent').innerHTML = supportHtml || '<p>暂无数据</p>';
+            
+            var resistanceHtml = '<h5 style="color:#007bff;">综合阻力位:</h5>';
+            if (sr.key_resistances && sr.key_resistances.length > 0) {
+                sr.key_resistances.forEach(function(r) {
+                    resistanceHtml += '<div class="level-row"><span class="level-price">$' + r.level.toLocaleString() + '</span><span class="level-strength">' + (r.type || '阻力') + '</span></div>';
+                });
+            }
+            document.getElementById('resistanceContent').innerHTML = resistanceHtml || '<p>暂无数据</p>';
+            
+            // 更新时间
+            document.getElementById('lastTime').textContent = new Date().toLocaleTimeString();
+        }
+    </script>
+</body>
+</html>

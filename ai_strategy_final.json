@@ -1,0 +1,11 @@
+{
+  "strategy": "AI\u5206\u6790\u524d\u65e5Up\u7387\u9884\u6d4b",
+  "threshold": 0.52,
+  "bankroll": -0.6400000000000006,
+  "roi": -100.064,
+  "trade_days": 3,
+  "total_trades": 193,
+  "wins": 90,
+  "losses": 103,
+  "winrate": 46.63212435233161
+}

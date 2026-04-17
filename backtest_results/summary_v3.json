@@ -1,0 +1,11 @@
+{
+  "initial": 10000,
+  "final": 11402.687101900696,
+  "total_return_pct": 14.02687101900696,
+  "annual_return_pct": 0.5624673014977599,
+  "sharpe": 0.10981658601431128,
+  "max_drawdown_pct": 19.45982316353722,
+  "total_trades": 40,
+  "win_rate": 45.0,
+  "profit_factor": 1.5706219349485142
+}

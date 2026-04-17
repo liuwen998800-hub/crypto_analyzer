@@ -1,0 +1,18 @@
+{
+  "strategy": "SR_Limit_Orders",
+  "symbol": "BTCUSDT",
+  "period": "2024-04-16 ~ 2025-04-16",
+  "initial_capital": 10000,
+  "final_equity": -1133605.9479999808,
+  "total_return_pct": -11436.059479999809,
+  "annual_return_pct": NaN,
+  "sharpe": -1.003432755854852,
+  "max_drawdown_pct": 11423.53274968757,
+  "total_trades": 3,
+  "win_rate": 33.33333333333333,
+  "profit_factor": 0.6777527202045959,
+  "avg_win": 2405239.9840000034,
+  "avg_loss": -1774422.965999992,
+  "tp_count": 1,
+  "sl_count": 2
+}

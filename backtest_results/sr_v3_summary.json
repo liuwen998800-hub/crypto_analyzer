@@ -1,0 +1,13 @@
+{
+  "strategy": "SR_V3_DirectEntry",
+  "initial_capital": 10000,
+  "final_equity": 999.078081327199,
+  "total_return_pct": -90.009219186728,
+  "annual_return_pct": -90.12210136023688,
+  "sharpe": -0.5428677380287373,
+  "max_drawdown_pct": 94.91257162373208,
+  "total_trades": 798,
+  "win_rate": 36.716791979949875,
+  "profit_factor": 0.8886442271562014,
+  "final_kelly": 0.05
+}

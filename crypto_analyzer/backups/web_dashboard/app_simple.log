@@ -1,0 +1,93 @@
+============================================================
+简化版虚拟币分析系统 - Web API
+============================================================
+项目目录: /home/billyqqq/.openclaw/workspaceopenclaw gateway restart/crypto_analyzer
+访问地址: http://localhost:5002
+============================================================
+API端点:
+  POST /api/analyze      - 分析单个币种
+  POST /api/analyze/batch - 批量分析
+  GET  /api/symbols      - 获取币种列表
+  GET  /api/status       - 系统状态
+  GET  /api/history/<symbol> - 分析历史
+  GET  /api/config       - 系统配置
+  GET  /enhanced         - 增强版仪表板
+============================================================
+ * Serving Flask app 'app_simple'
+ * Debug mode: off
+INFO:werkzeug:[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5003
+ * Running on http://10.0.0.101:5003
+INFO:werkzeug:[33mPress CTRL+C to quit[0m
+INFO:werkzeug:127.0.0.1 - - [16/Apr/2026 06:59:28] "[33mGET /api/stats HTTP/1.1[0m" 404 -
+INFO:werkzeug:127.0.0.1 - - [16/Apr/2026 06:59:28] "[33mGET /api/logs HTTP/1.1[0m" 404 -
+INFO:werkzeug:127.0.0.1 - - [16/Apr/2026 06:59:31] "GET /api/status HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [16/Apr/2026 07:00:07] "GET /api/status HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [16/Apr/2026 07:00:07] "GET /api/symbols HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [16/Apr/2026 07:00:07] "POST /api/analyze HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [16/Apr/2026 07:00:25] "POST /api/analyze HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [16/Apr/2026 07:00:25] "GET /enhanced HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [16/Apr/2026 07:00:26] "[33mGET /api/stats HTTP/1.1[0m" 404 -
+INFO:werkzeug:127.0.0.1 - - [16/Apr/2026 07:00:27] "[33mGET /api/logs HTTP/1.1[0m" 404 -
+INFO:werkzeug:127.0.0.1 - - [16/Apr/2026 07:01:27] "[33mGET /api/stats HTTP/1.1[0m" 404 -
+INFO:werkzeug:127.0.0.1 - - [16/Apr/2026 07:01:27] "[33mGET /api/logs HTTP/1.1[0m" 404 -
+INFO:werkzeug:127.0.0.1 - - [16/Apr/2026 07:02:26] "[33mGET /api/stats HTTP/1.1[0m" 404 -
+INFO:werkzeug:127.0.0.1 - - [16/Apr/2026 07:02:27] "[33mGET /api/logs HTTP/1.1[0m" 404 -
+INFO:werkzeug:127.0.0.1 - - [16/Apr/2026 07:03:27] "[33mGET /api/stats HTTP/1.1[0m" 404 -
+INFO:werkzeug:127.0.0.1 - - [16/Apr/2026 07:03:27] "[33mGET /api/logs HTTP/1.1[0m" 404 -
+INFO:werkzeug:127.0.0.1 - - [16/Apr/2026 07:04:23] "GET /api/status HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [16/Apr/2026 07:04:23] "GET /enhanced HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [16/Apr/2026 07:04:23] "POST /api/analyze HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [16/Apr/2026 07:04:23] "POST /api/analyze/batch HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [16/Apr/2026 07:04:26] "[33mGET /api/stats HTTP/1.1[0m" 404 -
+INFO:werkzeug:127.0.0.1 - - [16/Apr/2026 07:04:27] "[33mGET /api/logs HTTP/1.1[0m" 404 -
+INFO:werkzeug:127.0.0.1 - - [16/Apr/2026 07:05:27] "[33mGET /api/stats HTTP/1.1[0m" 404 -
+INFO:werkzeug:127.0.0.1 - - [16/Apr/2026 07:05:27] "[33mGET /api/logs HTTP/1.1[0m" 404 -
+INFO:werkzeug:127.0.0.1 - - [16/Apr/2026 07:06:26] "[33mGET /api/stats HTTP/1.1[0m" 404 -
+INFO:werkzeug:127.0.0.1 - - [16/Apr/2026 07:06:27] "[33mGET /api/logs HTTP/1.1[0m" 404 -
+INFO:werkzeug:127.0.0.1 - - [16/Apr/2026 07:07:27] "[33mGET /api/stats HTTP/1.1[0m" 404 -
+INFO:werkzeug:127.0.0.1 - - [16/Apr/2026 07:07:27] "[33mGET /api/logs HTTP/1.1[0m" 404 -
+INFO:werkzeug:127.0.0.1 - - [16/Apr/2026 07:08:26] "[33mGET /api/stats HTTP/1.1[0m" 404 -
+INFO:werkzeug:127.0.0.1 - - [16/Apr/2026 07:08:27] "[33mGET /api/logs HTTP/1.1[0m" 404 -
+INFO:werkzeug:127.0.0.1 - - [16/Apr/2026 07:09:27] "[33mGET /api/stats HTTP/1.1[0m" 404 -
+INFO:werkzeug:127.0.0.1 - - [16/Apr/2026 07:09:27] "[33mGET /api/logs HTTP/1.1[0m" 404 -
+INFO:werkzeug:127.0.0.1 - - [16/Apr/2026 07:10:26] "[33mGET /api/stats HTTP/1.1[0m" 404 -
+INFO:werkzeug:127.0.0.1 - - [16/Apr/2026 07:10:27] "[33mGET /api/logs HTTP/1.1[0m" 404 -
+INFO:werkzeug:127.0.0.1 - - [16/Apr/2026 07:11:27] "[33mGET /api/stats HTTP/1.1[0m" 404 -
+INFO:werkzeug:127.0.0.1 - - [16/Apr/2026 07:11:27] "[33mGET /api/logs HTTP/1.1[0m" 404 -
+INFO:werkzeug:127.0.0.1 - - [16/Apr/2026 07:12:26] "[33mGET /api/stats HTTP/1.1[0m" 404 -
+INFO:werkzeug:127.0.0.1 - - [16/Apr/2026 07:12:27] "[33mGET /api/logs HTTP/1.1[0m" 404 -
+INFO:werkzeug:127.0.0.1 - - [16/Apr/2026 07:13:27] "[33mGET /api/stats HTTP/1.1[0m" 404 -
+INFO:werkzeug:127.0.0.1 - - [16/Apr/2026 07:13:27] "[33mGET /api/logs HTTP/1.1[0m" 404 -
+INFO:werkzeug:127.0.0.1 - - [16/Apr/2026 07:14:26] "[33mGET /api/stats HTTP/1.1[0m" 404 -
+INFO:werkzeug:127.0.0.1 - - [16/Apr/2026 07:14:27] "[33mGET /api/logs HTTP/1.1[0m" 404 -
+INFO:werkzeug:127.0.0.1 - - [16/Apr/2026 07:15:27] "[33mGET /api/stats HTTP/1.1[0m" 404 -
+INFO:werkzeug:127.0.0.1 - - [16/Apr/2026 07:15:27] "[33mGET /api/logs HTTP/1.1[0m" 404 -
+INFO:werkzeug:127.0.0.1 - - [16/Apr/2026 07:16:26] "[33mGET /api/stats HTTP/1.1[0m" 404 -
+INFO:werkzeug:127.0.0.1 - - [16/Apr/2026 07:16:27] "[33mGET /api/logs HTTP/1.1[0m" 404 -
+INFO:werkzeug:127.0.0.1 - - [16/Apr/2026 07:17:26] "[33mGET /api/stats HTTP/1.1[0m" 404 -
+INFO:werkzeug:127.0.0.1 - - [16/Apr/2026 07:17:27] "[33mGET /api/logs HTTP/1.1[0m" 404 -
+INFO:werkzeug:127.0.0.1 - - [16/Apr/2026 07:17:57] "GET / HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [16/Apr/2026 07:18:27] "[33mGET /api/stats HTTP/1.1[0m" 404 -
+INFO:werkzeug:127.0.0.1 - - [16/Apr/2026 07:18:27] "[33mGET /api/logs HTTP/1.1[0m" 404 -
+INFO:werkzeug:127.0.0.1 - - [16/Apr/2026 07:19:26] "[33mGET /api/stats HTTP/1.1[0m" 404 -
+INFO:werkzeug:127.0.0.1 - - [16/Apr/2026 07:19:27] "[33mGET /api/logs HTTP/1.1[0m" 404 -
+INFO:werkzeug:127.0.0.1 - - [16/Apr/2026 07:20:27] "[33mGET /api/stats HTTP/1.1[0m" 404 -
+INFO:werkzeug:127.0.0.1 - - [16/Apr/2026 07:20:27] "[33mGET /api/logs HTTP/1.1[0m" 404 -
+INFO:werkzeug:127.0.0.1 - - [16/Apr/2026 07:21:26] "[33mGET /api/stats HTTP/1.1[0m" 404 -
+INFO:werkzeug:127.0.0.1 - - [16/Apr/2026 07:21:27] "[33mGET /api/logs HTTP/1.1[0m" 404 -
+INFO:werkzeug:127.0.0.1 - - [16/Apr/2026 07:22:27] "[33mGET /api/stats HTTP/1.1[0m" 404 -
+INFO:werkzeug:127.0.0.1 - - [16/Apr/2026 07:22:27] "[33mGET /api/logs HTTP/1.1[0m" 404 -
+INFO:werkzeug:127.0.0.1 - - [16/Apr/2026 07:23:26] "[33mGET /api/stats HTTP/1.1[0m" 404 -
+INFO:werkzeug:127.0.0.1 - - [16/Apr/2026 07:23:27] "[33mGET /api/logs HTTP/1.1[0m" 404 -
+INFO:werkzeug:127.0.0.1 - - [16/Apr/2026 07:24:27] "[33mGET /api/stats HTTP/1.1[0m" 404 -
+INFO:werkzeug:127.0.0.1 - - [16/Apr/2026 07:24:27] "[33mGET /api/logs HTTP/1.1[0m" 404 -
+INFO:werkzeug:127.0.0.1 - - [16/Apr/2026 07:25:26] "[33mGET /api/stats HTTP/1.1[0m" 404 -
+INFO:werkzeug:127.0.0.1 - - [16/Apr/2026 07:25:27] "[33mGET /api/logs HTTP/1.1[0m" 404 -
+INFO:werkzeug:127.0.0.1 - - [16/Apr/2026 07:26:27] "[33mGET /api/stats HTTP/1.1[0m" 404 -
+INFO:werkzeug:127.0.0.1 - - [16/Apr/2026 07:26:27] "[33mGET /api/logs HTTP/1.1[0m" 404 -
+INFO:werkzeug:127.0.0.1 - - [16/Apr/2026 07:27:26] "[33mGET /api/stats HTTP/1.1[0m" 404 -
+INFO:werkzeug:127.0.0.1 - - [16/Apr/2026 07:27:27] "[33mGET /api/logs HTTP/1.1[0m" 404 -
+INFO:werkzeug:127.0.0.1 - - [16/Apr/2026 07:28:27] "[33mGET /api/logs HTTP/1.1[0m" 404 -
+INFO:werkzeug:127.0.0.1 - - [16/Apr/2026 07:28:27] "[33mGET /api/stats HTTP/1.1[0m" 404 -

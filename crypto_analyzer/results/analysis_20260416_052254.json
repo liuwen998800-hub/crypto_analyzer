@@ -1,0 +1,287 @@
+{
+  "analysis_time": "2026-04-16T05:22:49.965750",
+  "symbols": [
+    {
+      "symbol": "BTC",
+      "timestamp": "2026-04-16T05:22:52.426833",
+      "price_data": {
+        "price": 74856.56,
+        "price_change": 786.38,
+        "price_change_percent": 1.062,
+        "high_24h": 75425.0,
+        "low_24h": 73580.85,
+        "volume_24h": 13330.23732,
+        "quote_volume_24h": 993748463.938873
+      },
+      "technical_indicators": {
+        "rsi": {
+          "value": 55.79,
+          "score": 50
+        },
+        "macd": {
+          "value": -15.3429423,
+          "score": 20
+        },
+        "ma": {
+          "ma20": 74667.2965,
+          "ma50": 74484.8532,
+          "score": 85
+        },
+        "bollinger": {
+          "upper": 75389.14772335,
+          "lower": 73945.44527665,
+          "position": 63.11,
+          "score": 40
+        },
+        "volume": {
+          "current": 103.84,
+          "average": 548.63,
+          "ratio": 0.19,
+          "score": 30
+        }
+      },
+      "technical_score": 45,
+      "key_levels": {
+        "current_price": 74856.55,
+        "pivot": 74781.83666667,
+        "nearest_support": 74694.62333333,
+        "nearest_resistance": 74943.76333333,
+        "all_supports": [
+          73924.73016,
+          74451.49,
+          74532.69666667,
+          74694.62333333
+        ],
+        "all_resistances": [
+          75425.0,
+          75281.0,
+          75267.85,
+          75030.97666667,
+          74943.76333333
+        ],
+        "fibonacci": {
+          "level_0": 70505.88,
+          "level_236": 71811.46032,
+          "level_382": 72619.14984,
+          "level_500": 73271.94,
+          "level_618": 73924.73016,
+          "level_786": 74854.12632,
+          "level_100": 76038.0
+        }
+      },
+      "sentiment": {
+        "fear_greed_index": 23,
+        "fear_greed_classification": "Extreme Fear",
+        "sentiment_score": 90
+      },
+      "signal": {
+        "signal": "BUY",
+        "action": "买入",
+        "composite_score": 63,
+        "breakdown": {
+          "technical_score": 45,
+          "sentiment_score": 90,
+          "ai_score": null
+        }
+      },
+      "klines_count": 100
+    },
+    {
+      "symbol": "ETH",
+      "timestamp": "2026-04-16T05:22:53.580811",
+      "price_data": {
+        "price": 2347.29,
+        "price_change": 21.56,
+        "price_change_percent": 0.927,
+        "high_24h": 2385.61,
+        "low_24h": 2312.15,
+        "volume_24h": 262169.5994,
+        "quote_volume_24h": 615764178.171761
+      },
+      "technical_indicators": {
+        "rsi": {
+          "value": 50.3,
+          "score": 50
+        },
+        "macd": {
+          "value": -2.62301347,
+          "score": 35
+        },
+        "ma": {
+          "ma20": 2353.202,
+          "ma50": 2344.3724,
+          "score": 45
+        },
+        "bollinger": {
+          "upper": 2373.81710281,
+          "lower": 2332.58689719,
+          "position": 35.66,
+          "score": 65
+        },
+        "volume": {
+          "current": 6421.86,
+          "average": 11017.44,
+          "ratio": 0.58,
+          "score": 30
+        }
+      },
+      "technical_score": 44,
+      "key_levels": {
+        "current_price": 2347.29,
+        "pivot": 2344.56333333,
+        "nearest_support": 2345.04,
+        "nearest_resistance": 2351.12666667,
+        "all_supports": [
+          2323.629,
+          2334.16333333,
+          2340.72666667,
+          2345.04,
+          2348.38
+        ],
+        "all_resistances": [
+          2385.61,
+          2380.45,
+          2369.59,
+          2354.96333333,
+          2351.12666667
+        ],
+        "fibonacci": {
+          "level_0": 2175.0,
+          "level_236": 2231.758,
+          "level_382": 2266.871,
+          "level_500": 2295.25,
+          "level_618": 2323.629,
+          "level_786": 2364.033,
+          "level_100": 2415.5
+        }
+      },
+      "sentiment": {
+        "fear_greed_index": 23,
+        "fear_greed_classification": "Extreme Fear",
+        "sentiment_score": 90
+      },
+      "signal": {
+        "signal": "BUY",
+        "action": "买入",
+        "composite_score": 62,
+        "breakdown": {
+          "technical_score": 44,
+          "sentiment_score": 90,
+          "ai_score": null
+        }
+      },
+      "klines_count": 100
+    },
+    {
+      "symbol": "SOL",
+      "timestamp": "2026-04-16T05:22:54.788025",
+      "price_data": {
+        "price": 85.33,
+        "price_change": 2.18,
+        "price_change_percent": 2.622,
+        "high_24h": 85.83,
+        "low_24h": 82.9,
+        "volume_24h": 2268458.748,
+        "quote_volume_24h": 191827965.74132
+      },
+      "technical_indicators": {
+        "rsi": {
+          "value": 58.97,
+          "score": 50
+        },
+        "macd": {
+          "value": 0.01643235,
+          "score": 65
+        },
+        "ma": {
+          "ma20": 84.9695,
+          "ma50": 84.584,
+          "score": 85
+        },
+        "bollinger": {
+          "upper": 85.72484032,
+          "lower": 84.21415968,
+          "position": 73.86,
+          "score": 40
+        },
+        "volume": {
+          "current": 26964.72,
+          "average": 90933.46,
+          "ratio": 0.3,
+          "score": 30
+        }
+      },
+      "technical_score": 56,
+      "key_levels": {
+        "current_price": 85.33,
+        "pivot": 85.23666667,
+        "nearest_support": 85.2252,
+        "nearest_resistance": 85.51333333,
+        "all_supports": [
+          84.18,
+          84.45,
+          84.77666667,
+          85.05333333,
+          85.2252
+        ],
+        "all_resistances": [
+          85.83,
+          85.71,
+          85.69666667,
+          85.59,
+          85.51333333
+        ],
+        "fibonacci": {
+          "level_0": 81.27,
+          "level_236": 82.7804,
+          "level_382": 83.7148,
+          "level_500": 84.47,
+          "level_618": 85.2252,
+          "level_786": 86.3004,
+          "level_100": 87.67
+        }
+      },
+      "sentiment": {
+        "fear_greed_index": 23,
+        "fear_greed_classification": "Extreme Fear",
+        "sentiment_score": 90
+      },
+      "signal": {
+        "signal": "BUY",
+        "action": "买入",
+        "composite_score": 69,
+        "breakdown": {
+          "technical_score": 56,
+          "sentiment_score": 90,
+          "ai_score": null
+        }
+      },
+      "klines_count": 100
+    }
+  ],
+  "market_summary": {
+    "fear_greed_index": 23,
+    "fear_greed_classification": "Extreme Fear",
+    "signal_distribution": {
+      "STRONG_BUY": 0,
+      "BUY": 3,
+      "NEUTRAL": 0,
+      "SELL": 0,
+      "STRONG_SELL": 0
+    },
+    "total_coins": 3,
+    "strongest_coin": {
+      "symbol": "SOL",
+      "signal": "BUY",
+      "score": 69
+    },
+    "weakest_coin": {
+      "symbol": "ETH",
+      "signal": "BUY",
+      "score": 62
+    },
+    "market_sentiment": "bullish",
+    "recommended_action": "积极买入"
+  },
+  "duration_seconds": 4.822682
+}

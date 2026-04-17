@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>测试页面 - 虚拟币分析系统</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 10px;
+        }
+        .status {
+            padding: 15px;
+            background: #e7f3ff;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .api-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .api-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 4px solid #007bff;
+        }
+        .api-card h3 {
+            margin-top: 0;
+            color: #007bff;
+        }
+        code {
+            background: #e9ecef;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 虚拟币分析系统 - 测试页面</h1>
+        
+        <div class="status">
+            <h2>✅ 系统状态</h2>
+            <p>服务运行正常！这是一个测试页面，用于验证前端UI是否正常工作。</p>
+            <p><strong>当前时间:</strong> <span id="current-time">加载中...</span></p>
+        </div>
+        
+        <h2>📡 API接口</h2>
+        <div class="api-list">
+            <div class="api-card">
+                <h3>系统状态</h3>
+                <p><code>GET /api/status</code></p>
+                <p>检查系统运行状态和分析次数。</p>
+                <button onclick="testApi('/api/status')">测试</button>
+                <div id="status-result"></div>
+            </div>
+            
+            <div class="api-card">
+                <h3>最新分析</h3>
+                <p><code>GET /api/latest</code></p>
+                <p>获取最新的虚拟币分析结果。</p>
+                <button onclick="testApi('/api/latest')">测试</button>
+                <div id="latest-result"></div>
+            </div>
+            
+            <div class="api-card">
+                <h3>增强版分析</h3>
+                <p><code>POST /api/analyze</code></p>
+                <p>分析单个币种（增强版API）。</p>
+                <button onclick="testAnalyze()">分析BTC</button>
+                <div id="analyze-result"></div>
+            </div>
+            
+            <div class="api-card">
+                <h3>市场总结</h3>
+                <p><code>GET /api/market_summary</code></p>
+                <p>获取市场情绪和信号分布。</p>
+                <button onclick="testApi('/api/market_summary')">测试</button>
+                <div id="market-result"></div>
+            </div>
+        </div>
+        
+        <h2>🌐 页面链接</h2>
+        <ul>
+            <li><a href="/enhanced">增强版仪表板</a> - 完整的前端界面</li>
+            <li><a href="/original">原始仪表板</a> - 原始版本界面</li>
+            <li><a href="/api/status">API状态</a> - 系统状态JSON</li>
+        </ul>
+    </div>
+    
+    <script>
+        // 更新时间
+        function updateTime() {
+            const now = new Date();
+            document.getElementById('current-time').textContent = now.toLocaleString();
+        }
+        setInterval(updateTime, 1000);
+        updateTime();
+        
+        // 测试API
+        async function testApi(endpoint) {
+            const resultDiv = document.getElementById(endpoint.replace('/', '-') + '-result');
+            resultDiv.innerHTML = '<p style="color: blue;">请求中...</p>';
+            
+            try {
+                const response = await fetch(endpoint);
+                const data = await response.json();
+                resultDiv.innerHTML = `<pre style="background: #f8f9fa; padding: 10px; border-radius: 5px; overflow: auto; max-height: 200px;">${JSON.stringify(data, null, 2)}</pre>`;
+            } catch (error) {
+                resultDiv.innerHTML = `<p style="color: red;">错误: ${error.message}</p>`;
+            }
+        }
+        
+        // 测试分析API
+        async function testAnalyze() {
+            const resultDiv = document.getElementById('analyze-result');
+            resultDiv.innerHTML = '<p style="color: blue;">分析中...</p>';
+            
+            try {
+                const response = await fetch('/api/analyze', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        symbol: 'BTC',
+                        timeframe: '1h',
+                        ai_model: 'both'
+                    })
+                });
+                const data = await response.json();
+                resultDiv.innerHTML = `
+                    <div style="background: #f8f9fa; padding: 10px; border-radius: 5px;">
+                        <p><strong>币种:</strong> ${data.symbol}</p>
+                        <p><strong>价格:</strong> $${data.price_data.current_price}</p>
+                        <p><strong>信号:</strong> ${data.signal.signal}</p>
+                        <p><strong>评分:</strong> ${data.composite_score.composite}/100</p>
+                    </div>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `<p style="color: red;">错误: ${error.message}</p>`;
+            }
+        }
+    </script>
+</body>
+</html>

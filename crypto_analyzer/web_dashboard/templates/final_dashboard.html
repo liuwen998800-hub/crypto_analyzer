@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>虚拟币AI分析系统</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: #f0f2f5; }
+        .container { max-width: 1100px; margin: 0 auto; }
+        .header { background: linear-gradient(135deg, #1e3c72, #2a5298); color: white; padding: 20px; border-radius: 10px; text-align: center; margin-bottom: 20px; }
+        .header h1 { margin: 0 0 10px 0; }
+        .card { background: white; border-radius: 10px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .card-title { font-size: 18px; font-weight: bold; color: #333; margin-bottom: 15px; }
+        .btn-group { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 15px; }
+        .btn { padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 14px; }
+        .btn-primary { background: #007bff; color: white; }
+        .btn-primary.active { background: linear-gradient(135deg, #667eea, #764ba2); }
+        .btn-secondary { background: #6c757d; color: white; }
+        .btn-secondary.active { background: linear-gradient(135deg, #ff9a9e, #fad0c4); }
+        .analyze-btn { width: 100%; padding: 15px; font-size: 18px; background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; border-radius: 10px; cursor: pointer; margin-top: 15px; }
+        .analyze-btn:hover { opacity: 0.9; }
+        .analyze-btn:disabled { background: #ccc; cursor: not-allowed; }
+        .loading { display: none; text-align: center; padding: 20px; }
+        .spinner { border: 4px solid #f3f3f3; border-top: 4px solid #667eea; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .result-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; }
+        .result-item { text-align: center; padding: 10px; background: #f8f9fa; border-radius: 8px; }
+        .result-label { font-size: 12px; color: #666; margin-bottom: 5px; }
+        .result-value { font-size: 20px; font-weight: bold; color: #333; }
+        .change.up { color: #28a745; }
+        .change.down { color: #dc3545; }
+        .signal-badge { display: inline-block; padding: 5px 15px; border-radius: 20px; font-weight: bold; color: white; }
+        .signal-buy { background: #28a745; }
+        .signal-sell { background: #dc3545; }
+        .signal-neutral { background: #ffc107; }
+        .wait-card { text-align: center; padding: 40px; }
+        .wait-icon { font-size: 48px; margin-bottom: 20px; }
+        .error-msg { color: #dc3545; text-align: center; padding: 10px; display: none; margin-top: 10px; }
+        
+        /* 双模型并排 */
+        .ai-models-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 15px; }
+        .ai-model-card { background: #f8f9fa; border-radius: 10px; padding: 15px; border-left: 4px solid #007bff; }
+        .ai-model-card.deepseek { border-left-color: #28a745; }
+        .ai-model-card.minimax { border-left-color: #dc3545; }
+        .ai-model-title { font-size: 16px; font-weight: bold; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+        
+        /* 技术指标表格 */
+        .tech-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        .tech-table th, .tech-table td { border: 1px solid #ddd; padding: 8px 12px; text-align: left; }
+        .tech-table th { background: #f8f9fa; font-weight: bold; }
+        .tech-table tr:nth-child(even) { background: #fafafa; }
+        .indicator-good { color: #28a745; font-weight: bold; }
+        .indicator-bad { color: #dc3545; font-weight: bold; }
+        .indicator-warning { color: #ffc107; }
+        .indicator-value { font-weight: bold; color: #333; }
+        
+        /* 移动平均线 */
+        .ma-section { background: #f8f9fa; padding: 15px; border-radius: 8px; }
+        .ma-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #eee; }
+        .ma-row:last-child { border-bottom: none; }
+        
+        /* 布林带 */
+        .bb-section { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; text-align: center; }
+        .bb-item { padding: 15px; background: #f8f9fa; border-radius: 8px; }
+        .bb-label { font-size: 12px; color: #666; }
+        .bb-value { font-size: 18px; font-weight: bold; margin-top: 5px; }
+        
+        /* 交易建议 */
+        .advice-box { background: linear-gradient(135deg, #667eea20, #764ba220); padding: 15px; border-radius: 8px; }
+        .advice-item { padding: 8px 0; border-bottom: 1px solid #eee; }
+        .advice-item:last-child { border-bottom: none; }
+        
+        /* 关键价位 */
+        .levels-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .level-item { display: flex; justify-content: space-between; padding: 8px 12px; background: #f8f9fa; margin: 5px 0; border-radius: 5px; }
+        .level-price { font-weight: bold; color: #333; }
+        .level-strength { font-size: 12px; color: #666; }
+        
+        .log-area { max-height: 150px; overflow-y: auto; font-family: monospace; font-size: 11px; background: #f8f9fa; padding: 10px; border-radius: 5px; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 虚拟币AI分析系统</h1>
+            <p>双AI模型实时分析 · Binance市场数据</p>
+        </div>
+        
+        <div class="card">
+            <div class="card-title">📊 选择分析参数</div>
+            <div style="margin-bottom: 15px;">
+                <div style="font-weight: bold; margin-bottom: 8px;">币种:</div>
+                <div class="btn-group">
+                    <button class="btn btn-primary active" data-coin="BTC" onclick="selectCoin('BTC')">BTC 比特币</button>
+                    <button class="btn btn-secondary" data-coin="ETH" onclick="selectCoin('ETH')">ETH 以太坊</button>
+                    <button class="btn btn-secondary" data-coin="SOL" onclick="selectCoin('SOL')">SOL Solana</button>
+                </div>
+            </div>
+            <div style="margin-bottom: 15px;">
+                <div style="font-weight: bold; margin-bottom: 8px;">时间框架:</div>
+                <div class="btn-group">
+                    <button class="btn btn-primary active" data-timeframe="1h" onclick="selectTimeframe('1h')">1小时</button>
+                    <button class="btn btn-secondary" data-timeframe="4h" onclick="selectTimeframe('4h')">4小时</button>
+                    <button class="btn btn-secondary" data-timeframe="24h" onclick="selectTimeframe('24h')">24小时</button>
+                </div>
+            </div>
+            <div style="margin-bottom: 15px;">
+                <div style="font-weight: bold; margin-bottom: 8px;">AI模型:</div>
+                <div class="btn-group">
+                    <button class="btn btn-primary active" data-model="both" onclick="selectModel('both')">🤖 双模型</button>
+                    <button class="btn btn-secondary" data-model="deepseek" onclick="selectModel('deepseek')">🔵 DeepSeek</button>
+                    <button class="btn btn-secondary" data-model="minimax" onclick="selectModel('minimax')">🔴 MiniMax</button>
+                </div>
+            </div>
+            <button class="analyze-btn" id="analyzeBtn" onclick="doAnalyze()">🔍 开始AI分析</button>
+            <div class="error-msg" id="errorMsg"></div>
+        </div>
+        
+        <div class="card" id="waitCard">
+            <div class="wait-card">
+                <div class="wait-icon">📊</div>
+                <h3>准备就绪</h3>
+                <p>请选择参数后点击"开始AI分析"按钮</p>
+            </div>
+        </div>
+        
+        <div class="card" id="resultsCard" style="display: none;">
+            <div class="card-title">📈 分析结果</div>
+            <div class="result-grid">
+                <div class="result-item">
+                    <div class="result-label">当前价格</div>
+                    <div class="result-value" id="resPrice">--</div>
+                    <div id="resChange" class="change">--%</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-label">AI信号</div>
+                    <div class="signal-badge" id="resSignal">--</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-label">综合评分</div>
+                    <div class="result-value" id="resScore">--</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-label">模型共识</div>
+                    <div id="resDirection">--</div>
+                    <div style="font-size: 12px; color: #666;">一致性: <span id="resAgreement">--</span></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- AI双模型并排分析 -->
+        <div class="card" id="aiModelsCard" style="display: none;">
+            <div class="card-title">🤖 AI双模型独立分析</div>
+            <div class="ai-models-grid" id="aiModelsGrid">
+                <!-- 动态填充 -->
+            </div>
+        </div>
+        
+        <!-- 详细技术指标 -->
+        <div class="card" id="techCard" style="display: none;">
+            <div class="card-title">📊 详细技术指标</div>
+            <table class="tech-table" id="techTable">
+                <thead>
+                    <tr><th>指标</th><th>数值</th><th>判断</th></tr>
+                </thead>
+                <tbody id="techTableBody">
+                    <!-- 动态填充 -->
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- 移动平均线 -->
+        <div class="card" id="maCard" style="display: none;">
+            <div class="card-title">📊 移动平均线 (EMA)</div>
+            <div id="maContent" class="ma-section">
+                <!-- 动态填充 -->
+            </div>
+        </div>
+        
+        <!-- 布林带 -->
+        <div class="card" id="bbCard" style="display: none;">
+            <div class="card-title">📊 布林带 (Bollinger Bands)</div>
+            <div id="bbContent" class="bb-section">
+                <!-- 动态填充 -->
+            </div>
+        </div>
+        
+        <!-- 交易建议 -->
+        <div class="card" id="adviceCard" style="display: none;">
+            <div class="card-title">💡 交易建议</div>
+            <div id="adviceContent" class="advice-box">
+                <!-- 动态填充 -->
+            </div>
+        </div>
+        
+        <!-- 关键价位 -->
+        <div class="card" id="levelsCard" style="display: none;">
+            <div class="card-title">🎯 支撑与阻力位</div>
+            <div class="levels-grid" id="levelsContent">
+                <!-- 动态填充 -->
+            </div>
+        </div>
+        
+        <!-- 日志 -->
+        <div class="card" id="logCard" style="display: none;">
+            <div class="card-title">📝 操作日志</div>
+            <div class="log-area" id="logArea"></div>
+        </div>
+    </div>
+    
+    <script>
+        var selectedCoin = 'BTC';
+        var selectedTimeframe = '1h';
+        var selectedModel = 'both';
+        
+        function selectCoin(coin) {
+            selectedCoin = coin;
+            document.querySelectorAll('[data-coin]').forEach(function(btn) {
+                btn.classList.remove('active', 'btn-primary');
+                btn.classList.add('btn-secondary');
+                if (btn.dataset.coin === coin) {
+                    btn.classList.remove('btn-secondary');
+                    btn.classList.add('btn-primary', 'active');
+                }
+            });
+        }
+        
+        function selectTimeframe(tf) {
+            selectedTimeframe = tf;
+            document.querySelectorAll('[data-timeframe]').forEach(function(btn) {
+                btn.classList.remove('active', 'btn-primary');
+                btn.classList.add('btn-secondary');
+                if (btn.dataset.timeframe === tf) {
+                    btn.classList.remove('btn-secondary');
+                    btn.classList.add('btn-primary', 'active');
+                }
+            });
+        }
+        
+        function selectModel(model) {
+            selectedModel = model;
+            document.querySelectorAll('[data-model]').forEach(function(btn) {
+                btn.classList.remove('active', 'btn-primary');
+                btn.classList.add('btn-secondary');
+                if (btn.dataset.model === model) {
+                    btn.classList.remove('btn-secondary');
+                    btn.classList.add('btn-primary', 'active');
+                }
+            });
+        }
+        
+        function showError(msg) {
+            var errEl = document.getElementById('errorMsg');
+            errEl.textContent = msg;
+            errEl.style.display = 'block';
+            setTimeout(function() { errEl.style.display = 'none'; }, 5000);
+        }
+        
+        function addLog(msg) {
+            var logArea = document.getElementById('logArea');
+            if (logArea) {
+                var time = new Date().toLocaleTimeString();
+                var entry = document.createElement('div');
+                entry.style.borderBottom = '1px solid #eee';
+                entry.style.padding = '2px 0';
+                entry.textContent = '[' + time + '] ' + msg;
+                logArea.insertBefore(entry, logArea.firstChild);
+            }
+        }
+        
+        function doAnalyze() {
+            addLog('开始分析: ' + selectedCoin + ' ' + selectedTimeframe + ' ' + selectedModel);
+            var btn = document.getElementById('analyzeBtn');
+            btn.disabled = true;
+            btn.textContent = '分析中...';
+            
+            // 显示所有结果卡片
+            document.getElementById('waitCard').style.display = 'none';
+            document.getElementById('resultsCard').style.display = 'block';
+            document.getElementById('aiModelsCard').style.display = 'block';
+            document.getElementById('techCard').style.display = 'block';
+            document.getElementById('maCard').style.display = 'block';
+            document.getElementById('bbCard').style.display = 'block';
+            document.getElementById('adviceCard').style.display = 'block';
+            document.getElementById('levelsCard').style.display = 'block';
+            document.getElementById('logCard').style.display = 'block';
+            
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', '/api/analyze', true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4) {
+                    btn.disabled = false;
+                    btn.textContent = '🔍 开始AI分析';
+                    if (xhr.status === 200) {
+                        try {
+                            var data = JSON.parse(xhr.responseText);
+                            addLog('分析完成!');
+                            displayResults(data);
+                        } catch (e) {
+                            showError('数据解析失败: ' + e.message);
+                            addLog('解析失败: ' + e.message);
+                        }
+                    } else {
+                        showError('请求失败: HTTP ' + xhr.status);
+                        addLog('HTTP错误: ' + xhr.status);
+                    }
+                }
+            };
+            
+            xhr.onerror = function() {
+                btn.disabled = false;
+                btn.textContent = '🔍 开始AI分析';
+                showError('网络错误');
+                addLog('网络错误');
+            };
+            
+            xhr.send(JSON.stringify({symbol: selectedCoin, timeframe: selectedTimeframe, ai_model: selectedModel}));
+        }
+        
+        function displayResults(data) {
+            // 基本信息
+            var price = data.price_data.current_price;
+            var change = data.price_data.price_change_pct_24h;
+            document.getElementById('resPrice').textContent = '$' + price.toLocaleString();
+            var changeEl = document.getElementById('resChange');
+            changeEl.textContent = (change >= 0 ? '+' : '') + change.toFixed(2) + '%';
+            changeEl.className = 'change ' + (change >= 0 ? 'up' : 'down');
+            
+            var signal = data.signal.signal;
+            var signalEl = document.getElementById('resSignal');
+            signalEl.textContent = signal;
+            signalEl.className = 'signal-badge';
+            if (signal.indexOf('BUY') >= 0) signalEl.classList.add('signal-buy');
+            else if (signal.indexOf('SELL') >= 0) signalEl.classList.add('signal-sell');
+            else signalEl.classList.add('signal-neutral');
+            
+            document.getElementById('resScore').textContent = data.composite_score.composite + '/100';
+            
+            var ai = data.ai_analysis.consensus;
+            var dirText = ai.direction === 'bullish' ? '看涨' : ai.direction === 'bearish' ? '看跌' : '中性';
+            document.getElementById('resDirection').textContent = dirText;
+            document.getElementById('resAgreement').textContent = (ai.agreement_score || 0) + '%';
+            
+            // 双模型并排显示
+            displayAIModels(data.ai_analysis);
+            
+            // 技术指标表格
+            displayTechnicalIndicators(data);
+            
+            // 移动平均线
+            displayMovingAverages(data);
+            
+            // 布林带
+            displayBollingerBands(data);
+            
+            // 交易建议
+            displayTradingAdvice(data);
+            
+            // 关键价位
+            displayLevels(data);
+        }
+        
+        function displayAIModels(aiAnalysis) {
+            var html = '';
+            
+            // DeepSeek分析
+            if (aiAnalysis.deepseek) {
+                var ds = aiAnalysis.deepseek;
+                var dsDir = ds.direction === 'bullish' ? '看涨' : ds.direction === 'bearish' ? '看跌' : '中性';
+                var dsColor = ds.direction === 'bullish' ? '#28a745' : ds.direction === 'bearish' ? '#dc3545' : '#ffc107';
+                
+                html += '<div class="ai-model-card deepseek">';
+                html += '<div class="ai-model-title"><span style="color:#28a745">🤖</span> DeepSeek分析</div>';
+                html += '<div style="margin: 10px 0;">';
+                html += '<p><strong>ai建议买入卖出信号:</strong> <span style="color:' + dsColor + ';font-weight:bold;">' + dsDir + '</span></p>';
+                html += '<p><strong>涨的置信度多少:</strong> <span style="color:#28a745">' + ds.bullish_confidence + '%</span></p>';
+                html += '<p><strong>跌的置信度多少:</strong> <span style="color:#dc3545">' + ds.bearish_confidence + '%</span></p>';
+                html += '<p><strong>综合置信度:</strong> ' + ds.confidence + '%</p>';
+                html += '</div>';
+                
+                // 震荡指标
+                if (ds.analysis_details) {
+                    html += '<div style="background:#fff;padding:10px;border-radius:5px;margin-top:10px;">';
+                    html += '<p style="margin:5px 0;font-weight:bold;">震荡指标:</p>';
+                    for (var key in ds.analysis_details) {
+                        html += '<p style="margin:3px 0;font-size:13px;">' + ds.analysis_details[key] + '</p>';
+                    }
+                    html += '</div>';
+                }
+                html += '</div>';
+            }
+            
+            // MiniMax分析
+            if (aiAnalysis.minimax) {
+                var mm = aiAnalysis.minimax;
+                var mmDir = mm.direction === 'bullish' ? '看涨' : mm.direction === 'bearish' ? '看跌' : '中性';
+                var mmColor = mm.direction === 'bullish' ? '#28a745' : mm.direction === 'bearish' ? '#dc3545' : '#ffc107';
+                var sentiment = mm.sentiment_details || {};
+                
+                html += '<div class="ai-model-card minimax">';
+                html += '<div class="ai-model-title"><span style="color:#dc3545">🧠</span> MiniMax分析</div>';
+                html += '<div style="margin: 10px 0;">';
+                html += '<p><strong>ai建议买入卖出信号:</strong> <span style="color:' + mmColor + ';font-weight:bold;">' + mmDir + '</span></p>';
+                html += '<p><strong>涨的置信度多少:</strong> <span style="color:#28a745">' + mm.bullish_confidence + '%</span></p>';
+                html += '<p><strong>跌的置信度多少:</strong> <span style="color:#dc3545">' + mm.bearish_confidence + '%</span></p>';
+                html += '<p><strong>综合置信度:</strong> ' + mm.confidence + '%</p>';
+                html += '</div>';
+                
+                // 市场情绪
+                if (sentiment) {
+                    html += '<div style="background:#fff;padding:10px;border-radius:5px;margin-top:10px;">';
+                    html += '<p style="margin:5px 0;font-weight:bold;">市场情绪:</p>';
+                    html += '<p style="margin:3px 0;font-size:13px;">恐慌指数: ' + (sentiment.fear_greed_index || '--') + ' (' + (sentiment.fear_greed_classification || '--') + ')</p>';
+                    html += '<p style="margin:3px 0;font-size:13px;">风险等级: ' + (sentiment.risk_level || '--') + '</p>';
+                    html += '<p style="margin:3px 0;font-size:13px;">价格动能: ' + (sentiment.price_momentum || '--') + ' (' + (sentiment.price_change_pct || 0).toFixed(2) + '%)</p>';
+                    html += '</div>';
+                }
+                html += '</div>';
+            }
+            
+            document.getElementById('aiModelsGrid').innerHTML = html;
+        }
+        
+        function displayTechnicalIndicators(data) {
+            var tech = data.technical_indicators;
+            var detailed = tech.detailed_indicators || {};
+            var html = '';
+            
+            // RSI6
+            var rsi6 = detailed.rsi6 || 0;
+            html += '<tr><td>RSI6</td><td class="indicator-value">' + rsi6.toFixed(2) + '</td><td class="' + getRSIClass(rsi6) + '">' + getRSIJudge(rsi6) + '</td></tr>';
+            
+            // RSI14
+            var rsi14 = detailed.rsi14 || 0;
+            html += '<tr><td>RSI14</td><td class="indicator-value">' + rsi14.toFixed(2) + '</td><td class="' + getRSIClass(rsi14) + '">' + getRSIJudge(rsi14) + '</td></tr>';
+            
+            // MACD
+            var macd = detailed.macd || 0;
+            html += '<tr><td>MACD</td><td class="indicator-value">' + macd.toFixed(4) + '</td><td class="' + (macd > 0 ? 'indicator-good' : 'indicator-bad') + '">' + (macd > 0 ? '金叉(看涨)' : '死叉(看跌)') + '</td></tr>';
+            
+            // KDJ K
+            var kdj_k = detailed.kdj_k || 0;
+            html += '<tr><td>KDJ K</td><td class="indicator-value">' + kdj_k.toFixed(2) + '</td><td class="' + (kdj_k < 30 ? 'indicator-good' : kdj_k > 70 ? 'indicator-bad' : 'indicator-warning') + '">' + getKDJJudge(kdj_k) + '</td></tr>';
+            
+            // 威廉指标
+            var williams = detailed.williams || 0;
+            html += '<tr><td>威廉指标</td><td class="indicator-value">' + williams.toFixed(2) + '</td><td class="' + (williams < -80 ? 'indicator-good' : williams > -20 ? 'indicator-bad' : 'indicator-warning') + '">' + (williams < -80 ? '超卖(看涨)' : williams > -20 ? '超买(看跌)' : '中性') + '</td></tr>';
+            
+            // ATR波动率
+            var atr = detailed.atr || 0;
+            var atrPct = (atr / data.price_data.current_price * 100).toFixed(2);
+            html += '<tr><td>ATR波动率</td><td class="indicator-value">' + atr.toFixed(2) + '</td><td class="indicator-warning">' + (atrPct > 3 ? '高波动(' + atrPct + '%)' : atrPct > 1.5 ? '中波动(' + atrPct + '%)' : '低波动(' + atrPct + '%)') + '</td></tr>';
+            
+            // 成交量
+            var volume = detailed.volume || {};
+            var volRatio = volume.ratio || 0;
+            html += '<tr><td>当前成交量</td><td class="indicator-value">' + (volume.current || 0).toFixed(0) + ' BTC</td><td>-</td></tr>';
+            html += '<tr><td>20均成交量</td><td class="indicator-value">' + (volume.ma20 || 0).toFixed(0) + ' BTC</td><td>-</td></tr>';
+            html += '<tr><td>量比</td><td class="indicator-value">' + volRatio.toFixed(2) + 'x</td><td class="' + (volRatio > 1.2 ? 'indicator-good' : volRatio < 0.8 ? 'indicator-bad' : 'indicator-warning') + '">' + (volRatio > 1.5 ? '明显放量' : volRatio > 1.2 ? '温和放量' : volRatio > 0.8 ? '正常' : '缩量') + '</td></tr>';
+            
+            document.getElementById('techTableBody').innerHTML = html;
+        }
+        
+        function getRSIJudge(rsi) {
+            if (rsi < 30) return '超卖(强烈看涨)';
+            if (rsi < 40) return '偏弱(看涨)';
+            if (rsi < 60) return '中性';
+            if (rsi < 70) return '偏强(看跌)';
+            return '超买(强烈看跌)';
+        }
+        
+        function getRSIClass(rsi) {
+            if (rsi < 30) return 'indicator-good';
+            if (rsi < 40) return 'indicator-good';
+            if (rsi < 60) return 'indicator-warning';
+            if (rsi < 70) return 'indicator-bad';
+            return 'indicator-bad';
+        }
+        
+        function getKDJJudge(kdj) {
+            if (kdj < 20) return '超卖(看涨)';
+            if (kdj < 30) return '偏弱';
+            if (kdj < 70) return '中性';
+            if (kdj < 80) return '偏强';
+            return '超买(看跌)';
+        }
+        
+        function displayMovingAverages(data) {
+            var ma = data.technical_indicators.detailed_indicators.moving_averages || {};
+            var price = data.price_data.current_price;
+            var html = '';
+            
+            html += '<div class="ma-row"><span>当前价格</span><span style="font-weight:bold;">$' + price.toLocaleString() + '</span><span>-</span></div>';
+            
+            var ema5 = ma.ema5 || 0;
+            var ema5Diff = ((price - ema5) / ema5 * 100).toFixed(2);
+            html += '<div class="ma-row"><span>EMA5</span><span>$' + ema5.toLocaleString() + '</span><span style="color:' + (price > ema5 ? '#28a745' : '#dc3545') + ';">' + (price > ema5 ? '🟢 高于价格' : '🔴 低于价格') + ' (' + ema5Diff + '%)</span></div>';
+            
+            var ema10 = ma.ema10 || 0;
+            html += '<div class="ma-row"><span>EMA10</span><span>$' + ema10.toLocaleString() + '</span><span style="color:' + (price > ema10 ? '#28a745' : '#dc3545') + ';">' + (price > ema10 ? '🟢 多头排列' : '🔴 空头排列') + '</span></div>';
+            
+            html += '<div class="ma-row"><span>EMA20</span><span>$' + (ma.ema20 || 0).toLocaleString() + '</span><span>-</span></div>';
+            html += '<div class="ma-row"><span>EMA50</span><span>$' + (ma.ema50 || 0).toLocaleString() + '</span><span>-</span></div>';
+            html += '<div class="ma-row"><span>EMA200</span><span>$' + (ma.ema200 || 0).toLocaleString() + '</span><span>-</span></div>';
+            
+            document.getElementById('maContent').innerHTML = html;
+        }
+        
+        function displayBollingerBands(data) {
+            var bb = data.technical_indicators.detailed_indicators.bollinger_bands || {};
+            var html = '';
+            
+            html += '<div class="bb-item"><div class="bb-label">上轨</div><div class="bb-value" style="color:#dc3545;">$' + (bb.upper || 0).toLocaleString() + '</div></div>';
+            html += '<div class="bb-item"><div class="bb-label">中轨</div><div class="bb-value" style="color:#ffc107;">$' + (bb.middle || 0).toLocaleString() + '</div></div>';
+            html += '<div class="bb-item"><div class="bb-label">下轨</div><div class="bb-value" style="color:#28a745;">$' + (bb.lower || 0).toLocaleString() + '</div></div>';
+            
+            document.getElementById('bbContent').innerHTML = html;
+        }
+        
+        function displayTradingAdvice(data) {
+            var tech = data.technical_indicators.core_indicators;
+            var price = data.price_data.current_price;
+            var html = '';
+            
+            // 短期分析
+            var macdValue = tech.macd?.value || 0;
+            html += '<div class="advice-item"><strong>短期(1-4h):</strong> ' + (macdValue > 0 ? '上涨动能强劲，MACD柱状图上升' : macdValue > -5 ? '上涨动能减弱' : '下跌动能，MACD负值') + '</div>';
+            
+            // 中期分析
+            var maSignal = tech.moving_averages?.signal || 'neutral';
+            html += '<div class="advice-item"><strong>中期(1-3天):</strong> ' + (maSignal === 'bullish' ? '均线多头排列，趋势向上，逢低做多' : maSignal === 'bearish' ? '均线空头排列，趋势向下，逢高做空' : '均线纠缠，震荡行情') + '</div>';
+            
+            // 具体建议
+            var rsi14 = data.technical_indicators.detailed_indicators?.rsi14 || 50;
+            if (rsi14 < 40) {
+                html += '<div class="advice-item" style="color:#28a745;"><strong>🟢 做多建议:</strong> RSI<' + rsi14.toFixed(0) + '超卖区域，等待回调入场</div>';
+            }
+            
+            html += '<div class="advice-item" style="color:#dc3545;"><strong>🔴 止损位:</strong> 建议设置在EMA60下方约 ' + (price * 0.965).toFixed(0) + ' 附近</div>';
+            html += '<div class="advice-item" style="color:#ffc107;"><strong>🟡 止盈位:</strong> 布林上轨 ' + (data.technical_indicators.detailed_indicators.bollinger_bands?.upper || (price * 1.03)).toFixed(0) + ' 或心理关口 ' + (price * 1.05).toFixed(0) + '</div>';
+            
+            document.getElementById('adviceContent').innerHTML = html;
+        }
+        
+        function displayLevels(data) {
+            var sr = data.support_resistance;
+            var html = '';
+            
+            html += '<div><h4 style="color:#28a745;">支撑位:</h4>';
+            if (sr.key_supports && sr.key_supports.length > 0) {
+                sr.key_supports.forEach(function(s, i) {
+                    html += '<div class="level-item"><span class="level-price">$' + s.level.toLocaleString() + '</span><span class="level-strength">' + (i === 0 ? '强支撑' : i === 1 ? '中支撑' : '弱支撑') + ' ' + s.strength + '%</span></div>';
+                });
+            }
+            html += '</div>';
+            
+            html += '<div><h4 style="color:#dc3545;">阻力位:</h4>';
+            if (sr.key_resistances && sr.key_resistances.length > 0) {
+                sr.key_resistances.forEach(function(r, i) {
+                    html += '<div class="level-item"><span class="level-price">$' + r.level.toLocaleString() + '</span><span class="level-strength">' + (i === 0 ? '强阻力' : i === 1 ? '中阻力' : '弱阻力') + ' ' + r.strength + '%</span></div>';
+                });
+            }
+            html += '</div>';
+            
+            document.getElementById('levelsContent').innerHTML = html;
+        }
+        
+        addLog('系统初始化完成');
+    </script>
+</body>
+</html>

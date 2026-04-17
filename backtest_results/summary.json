@@ -1,0 +1,15 @@
+{
+  "strategy": "24H_Binance",
+  "period": "2024-04-19 ~ 2025-04-16",
+  "initial_capital": 10000,
+  "final_equity": 8883.581694060278,
+  "total_return_pct": -11.164183059397219,
+  "annual_return_pct": -0.4964461714510038,
+  "sharpe_ratio": 0.31029944482019267,
+  "max_drawdown_pct": 26.159832688277728,
+  "total_trades": 273,
+  "win_rate": 32.6007326007326,
+  "profit_factor": 0.4410173697501959,
+  "best_day_pct": 22.32971073261938,
+  "worst_day_pct": -18.675212287863918
+}

@@ -1,0 +1,4 @@
+symbol,price,change_percent,signal,composite_score,technical_score,sentiment_score,fear_greed_index
+BTC,74856.56,1.062,BUY,63,45,90,23
+ETH,2347.29,0.927,BUY,62,44,90,23
+SOL,85.33,2.622,BUY,69,56,90,23

@@ -1,0 +1,42 @@
+============================================================
+增强版虚拟币分析系统 - 5000端口
+============================================================
+项目目录: /home/billyqqq/.openclaw/workspaceopenclaw gateway restart/crypto_analyzer
+访问地址: http://localhost:5000
+============================================================
+原始API (保持兼容):
+  GET  /api/latest        - 最新分析
+  GET  /api/market_summary - 市场总结
+  GET  /api/coin/<symbol> - 币种详情
+  GET  /api/run_analysis  - 运行分析
+  GET  /api/status        - 系统状态
+  GET  /api/history       - 分析历史
+============================================================
+增强版API:
+  POST /api/analyze       - 分析单个币种
+  POST /api/analyze/batch  - 批量分析
+  GET  /api/symbols_enhanced - 币种列表
+============================================================
+前端页面:
+  GET  /                  - 增强版仪表板
+  GET  /enhanced          - 增强版仪表板
+  GET  /original          - 原始仪表板
+============================================================
+ * Serving Flask app 'app'
+ * Debug mode: off
+INFO:werkzeug:[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://10.0.0.101:5000
+INFO:werkzeug:[33mPress CTRL+C to quit[0m
+INFO:werkzeug:127.0.0.1 - - [16/Apr/2026 07:33:57] "GET /api/status HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [16/Apr/2026 07:33:57] "GET / HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [16/Apr/2026 07:33:57] "GET / HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [16/Apr/2026 07:34:09] "GET / HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [16/Apr/2026 07:34:09] "GET / HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [16/Apr/2026 07:34:21] "OPTIONS /api/latest HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [16/Apr/2026 07:34:21] "OPTIONS /api/market_summary HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [16/Apr/2026 07:34:21] "OPTIONS /api/status HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [16/Apr/2026 07:34:21] "GET /api/status HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [16/Apr/2026 07:34:21] "GET /api/latest HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [16/Apr/2026 07:34:21] "GET /api/market_summary HTTP/1.1" 200 -

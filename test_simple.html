@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>简单测试页面</title>
+    <style>
+        body { font-family: Arial; padding: 20px; }
+        button { padding: 10px 20px; margin: 5px; font-size: 16px; }
+        .red { background: red; color: white; }
+        .green { background: green; color: white; }
+        .blue { background: blue; color: white; }
+        .active { box-shadow: 0 0 10px yellow; }
+        #result { margin-top: 20px; padding: 10px; background: #f0f0f0; }
+    </style>
+</head>
+<body>
+    <h1>虚拟币分析系统 - 简单测试</h1>
+    
+    <div>
+        <h3>币种选择:</h3>
+        <button class="red active" data-coin="BTC" onclick="selectCoin('BTC')">BTC</button>
+        <button class="green" data-coin="ETH" onclick="selectCoin('ETH')">ETH</button>
+        <button class="blue" data-coin="SOL" onclick="selectCoin('SOL')">SOL</button>
+    </div>
+    
+    <div>
+        <h3>时间框架:</h3>
+        <button class="active" onclick="selectTimeframe('1h')">1小时</button>
+        <button onclick="selectTimeframe('4h')">4小时</button>
+        <button onclick="selectTimeframe('24h')">24小时</button>
+    </div>
+    
+    <div>
+        <button onclick="doAnalyze()" style="background: #007bff; color: white; padding: 15px 30px; font-size: 18px; border-radius: 10px; margin-top: 20px;">
+            🔍 开始AI分析
+        </button>
+    </div>
+    
+    <div id="result">点击按钮测试...</div>
+    
+    <script>
+        var selectedCoin = 'BTC';
+        var selectedTimeframe = '1h';
+        
+        function selectCoin(coin) {
+            selectedCoin = coin;
+            document.getElementById('result').innerHTML = '选择了: ' + coin;
+            
+            // 更新按钮样式
+            var buttons = document.querySelectorAll('[data-coin]');
+            buttons.forEach(function(btn) {
+                btn.classList.remove('active');
+                if (btn.dataset.coin === coin) {
+                    btn.classList.add('active');
+                }
+            });
+        }
+        
+        function selectTimeframe(tf) {
+            selectedTimeframe = tf;
+            document.getElementById('result').innerHTML = '时间框架: ' + tf;
+        }
+        
+        function doAnalyze() {
+            var resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = '正在分析 ' + selectedCoin + ' ' + selectedTimeframe + '...';
+            
+            // 模拟API调用
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', '/api/analyze', true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4) {
+                    if (xhr.status === 200) {
+                        try {
+                            var data = JSON.parse(xhr.responseText);
+                            resultDiv.innerHTML = 
+                                '<h3>✅ 分析成功!</h3>' +
+                                '<p>价格: $' + data.price_data.current_price + '</p>' +
+                                '<p>信号: ' + data.signal.signal + '</p>' +
+                                '<p>评分: ' + data.composite_score.composite + '/100</p>';
+                        } catch (e) {
+                            resultDiv.innerHTML = '❌ 数据解析失败: ' + e.message;
+                        }
+                    } else {
+                        resultDiv.innerHTML = '❌ HTTP错误: ' + xhr.status;
+                    }
+                }
+            };
+            
+            xhr.onerror = function() {
+                resultDiv.innerHTML = '❌ 网络错误';
+            };
+            
+            var requestData = JSON.stringify({
+                symbol: selectedCoin,
+                timeframe: selectedTimeframe
+            });
+            
+            xhr.send(requestData);
+        }
+        
+        // 页面加载完成
+        document.getElementById('result').innerHTML = '✅ 页面加载完成，JavaScript正常执行！';
+    </script>
+</body>
+</html>

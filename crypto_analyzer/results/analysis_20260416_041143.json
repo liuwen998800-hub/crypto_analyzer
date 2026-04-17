@@ -1,0 +1,81 @@
+{
+  "timestamp": "2026-04-16T04:11:43.579760",
+  "price_data": {
+    "BTC": {
+      "price": 74529.56,
+      "change": 764.86,
+      "change_percent": 1.037,
+      "high": 75425.0,
+      "low": 73580.85,
+      "volume": 13433.93671
+    },
+    "ETH": {
+      "price": 2336.07,
+      "change": 19.39,
+      "change_percent": 0.837,
+      "high": 2385.61,
+      "low": 2312.15,
+      "volume": 265073.4433
+    },
+    "SOL": {
+      "price": 85.06,
+      "change": 2.18,
+      "change_percent": 2.63,
+      "high": 85.83,
+      "low": 82.85,
+      "volume": 2282318.436
+    }
+  },
+  "sentiment_data": {
+    "value": 23,
+    "classification": "Extreme Fear",
+    "sentiment_score": 77,
+    "trading_action": "积极买入",
+    "description": "极度恐慌 - 强烈买入信号"
+  },
+  "composite_signals": {
+    "BTC": {
+      "signal": "NEUTRAL",
+      "composite_score": 57,
+      "description": "观望 - 指标矛盾或无明确趋势",
+      "color": "⚪",
+      "price": 74529.56,
+      "support": 70803.082,
+      "resistance": 78256.038,
+      "breakdown": {
+        "technical_score": 45,
+        "sentiment_score": 77
+      }
+    },
+    "ETH": {
+      "signal": "NEUTRAL",
+      "composite_score": 57,
+      "description": "观望 - 指标矛盾或无明确趋势",
+      "color": "⚪",
+      "price": 2336.07,
+      "support": 2219.2665,
+      "resistance": 2452.8735,
+      "breakdown": {
+        "technical_score": 45,
+        "sentiment_score": 77
+      }
+    },
+    "SOL": {
+      "signal": "BUY",
+      "composite_score": 63,
+      "description": "买入 - 多数指标显示看涨",
+      "color": "🟡",
+      "price": 85.06,
+      "support": 80.807,
+      "resistance": 89.313,
+      "breakdown": {
+        "technical_score": 55,
+        "sentiment_score": 77
+      }
+    }
+  },
+  "summary": {
+    "total_coins_analyzed": 3,
+    "analysis_time": "20260416_041143"
+  }
+}

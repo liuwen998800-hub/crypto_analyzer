@@ -1,0 +1,12 @@
+{
+  "strategy": "SR_V4_StrictFilter",
+  "initial": 10000,
+  "final": 12561.252061800784,
+  "total_return_pct": 25.61252061800784,
+  "annual_return_pct": 25.75389604889009,
+  "sharpe": 0.67805210303829,
+  "max_drawdown_pct": 50.89129613560732,
+  "total_trades": 285,
+  "win_rate": 37.89473684210527,
+  "profit_factor": 1.0630307207044722
+}

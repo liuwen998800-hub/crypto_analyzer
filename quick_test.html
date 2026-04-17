@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>快速测试页面</title>
+</head>
+<body>
+    <h1>虚拟币分析系统 - 快速测试</h1>
+    
+    <h2>测试链接:</h2>
+    <ul>
+        <li><a href="http://localhost:5000/" target="_blank">主界面</a></li>
+        <li><a href="http://localhost:5000/api/status" target="_blank">API状态</a></li>
+        <li><a href="http://localhost:5000/api/latest" target="_blank">最新数据</a></li>
+    </ul>
+    
+    <h2>直接测试API:</h2>
+    <button onclick="testAPI()">测试API</button>
+    <div id="result" style="margin-top: 10px; padding: 10px; background: #f0f0f0;"></div>
+    
+    <h2>常见问题:</h2>
+    <ol>
+        <li>如果页面打不开，检查Flask服务器是否运行</li>
+        <li>如果按钮没反应，按F12打开开发者工具查看Console错误</li>
+        <li>如果样式不对，按Ctrl+F5强制刷新页面</li>
+    </ol>
+    
+    <script>
+        async function testAPI() {
+            try {
+                const response = await fetch('http://localhost:5000/api/analyze', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({symbol: 'BTC', timeframe: '1h'})
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    document.getElementById('result').innerHTML = 
+                        '<strong>✅ API工作正常</strong><br>' +
+                        '价格: $' + data.price_data.current_price + '<br>' +
+                        '信号: ' + data.signal.signal + '<br>' +
+                        '时间: ' + data.timestamp;
+                } else {
+                    document.getElementById('result').innerHTML = 
+                        '❌ API错误: HTTP ' + response.status;
+                }
+            } catch (error) {
+                document.getElementById('result').innerHTML = 
+                    '❌ 网络错误: ' + error.message;
+            }
+        }
+    </script>
+</body>
+</html>

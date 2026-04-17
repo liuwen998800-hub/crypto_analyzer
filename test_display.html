@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>测试双模型显示</title>
+    <style>
+        .models { display: flex; gap: 20px; }
+        .model-card { border: 1px solid #ccc; padding: 15px; border-radius: 5px; width: 45%; }
+        .deepseek { border-left: 4px solid green; }
+        .minimax { border-left: 4px solid red; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+    </style>
+</head>
+<body>
+    <h1>测试双模型数据显示</h1>
+    <button onclick="testAPI()">测试API数据</button>
+    <div id="result"></div>
+    
+    <script>
+        async function testAPI() {
+            try {
+                const response = await fetch('http://localhost:5000/api/analyze', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({symbol: 'BTC', timeframe: '1h', ai_model: 'both'})
+                });
+                
+                const data = await response.json();
+                displayData(data);
+            } catch (error) {
+                document.getElementById('result').innerHTML = '错误: ' + error;
+            }
+        }
+        
+        function displayData(data) {
+            let html = '<h2>API数据验证</h2>';
+            html += '<p>时间戳: ' + data.timestamp + '</p>';
+            html += '<p>价格: $' + data.price_data.current_price + '</p>';
+            html += '<p>信号: ' + data.signal.signal + '</p>';
+            
+            // 双模型数据
+            html += '<div class="models">';
+            
+            // DeepSeek
+            if (data.ai_analysis.deepseek) {
+                const ds = data.ai_analysis.deepseek;
+                html += '<div class="model-card deepseek">';
+                html += '<h3>DeepSeek分析</h3>';
+                html += '<p>方向: ' + (ds.direction === 'bullish' ? '看涨' : ds.direction === 'bearish' ? '看跌' : '中性') + '</p>';
+                html += '<p>涨的置信度: ' + ds.bullish_confidence + '%</p>';
+                html += '<p>跌的置信度: ' + ds.bearish_confidence + '%</p>';
+                html += '</div>';
+            }
+            
+            // MiniMax
+            if (data.ai_analysis.minimax) {
+                const mm = data.ai_analysis.minimax;
+                html += '<div class="model-card minimax">';
+                html += '<h3>MiniMax分析</h3>';
+                html += '<p>方向: ' + (mm.direction === 'bullish' ? '看涨' : mm.direction === 'bearish' ? '看跌' : '中性') + '</p>';
+                html += '<p>涨的置信度: ' + mm.bullish_confidence + '%</p>';
+                html += '<p>跌的置信度: ' + mm.bearish_confidence + '%</p>';
+                html += '</div>';
+            }
+            
+            html += '</div>';
+            
+            // 技术指标
+            const tech = data.technical_indicators.detailed_indicators;
+            if (tech) {
+                html += '<h3>技术指标</h3>';
+                html += '<table>';
+                html += '<tr><th>指标</th><th>数值</th></tr>';
+                html += '<tr><td>RSI6</td><td>' + tech.rsi6?.toFixed(2) + '</td></tr>';
+                html += '<tr><td>RSI14</td><td>' + tech.rsi14?.toFixed(2) + '</td></tr>';
+                html += '<tr><td>MACD</td><td>' + tech.macd?.toFixed(4) + '</td></tr>';
+                html += '<tr><td>KDJ K</td><td>' + tech.kdj_k?.toFixed(2) + '</td></tr>';
+                html += '<tr><td>威廉指标</td><td>' + tech.williams?.toFixed(2) + '</td></tr>';
+                html += '<tr><td>ATR波动率</td><td>' + tech.atr?.toFixed(2) + '</td></tr>';
+                html += '<tr><td>量比</td><td>' + tech.volume?.ratio?.toFixed(2) + 'x</td></tr>';
+                html += '</table>';
+            }
+            
+            document.getElementById('result').innerHTML = html;
+        }
+    </script>
+</body>
+</html>

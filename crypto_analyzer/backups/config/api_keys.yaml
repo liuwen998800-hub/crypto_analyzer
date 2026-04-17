@@ -1,0 +1,80 @@
+# API密钥配置文件
+
+# Binance API (可选，免费层有限制)
+binance:
+  api_key: ""
+  api_secret: ""
+
+# DeepSeek API
+deepseek:
+  api_key: "sk_live_b8da1e30dad5328923593a5592a80f5dcf510153b2a970e1616f2f5e3a12d08f4"  # DeepSeek API密钥
+  base_url: "https://api.deepseek.com/v1"
+  model: "deepseek-chat"
+
+# MiniMax API  
+minimax:
+  api_key: "sk-cp-FWiGctUdaoTYkcT8fpMydhIss7Xkop9UBxn-kTDtguJbe-ekl-eQHQ7FB6xVidMy2HWPytZMRrJjK4mlfDzwAsNVgcuH8vesYlmmimneMgN-ZC8lITE8AWA"  # MiniMax API密钥
+  group_id: ""  # Group ID (如果需要请填写)
+  base_url: "https://api.minimax.chat/v1"
+  model: "MiniMax-M2.7"
+
+# 情绪分析API (可选)
+twitter:
+  bearer_token: ""
+  
+reddit:
+  client_id: ""
+  client_secret: ""
+  user_agent: "CryptoAnalyzer/1.0"
+
+# Glassnode链上数据 (可选，需要付费)
+glassnode:
+  api_key: ""
+
+# 数据库配置
+database:
+  # SQLite (开发环境)
+  sqlite_path: "data/crypto_analysis.db"
+  
+  # PostgreSQL (生产环境)
+  postgres:
+    host: "localhost"
+    port: 5432
+    database: "crypto_analysis"
+    username: ""
+    password: ""
+
+# 调度配置
+scheduler:
+  analysis_interval_hours: 1
+  report_timezone: "Asia/Shanghai"
+  retry_attempts: 3
+  retry_delay_seconds: 60
+
+# 评分权重配置
+scoring_weights:
+  technical: 0.4
+  ai_analysis: 0.4
+  sentiment: 0.2
+  
+  # 技术指标子权重
+  technical_breakdown:
+    rsi: 0.25
+    macd: 0.25
+    moving_averages: 0.20
+    bollinger_bands: 0.15
+    volume: 0.15
+
+# 信号阈值
+signal_thresholds:
+  strong_buy: 80
+  buy: 60
+  neutral: 40
+  sell: 20
+  strong_sell: 0
+
+# 支撑阻力位计算
+support_resistance:
+  lookback_periods: 20  # 回顾周期数
+  pivot_periods: 5      # 枢轴点周期
+  tolerance_pct: 0.02   # 容忍百分比

@@ -1,0 +1,64 @@
+{
+  "timestamp": "2026-04-16 20:57:11",
+  "symbol": "BTCUSDT",
+  "interval": "1h",
+  "current_price": 74955.65,
+  "price_data": {
+    "open": 75154.28,
+    "high": 75154.77,
+    "low": 74886.82,
+    "close": 74955.65,
+    "volume": 583.84,
+    "volume_ma20": 761.05,
+    "volume_ratio": 0.77
+  },
+  "ema": {
+    "ema5": 74984.15,
+    "ema10": 74885.95,
+    "ema20": 74765.5,
+    "ema30": 74680.14,
+    "ema50": 74484.63,
+    "ema60": 74375.39,
+    "ema120": 73787.85,
+    "ema200": 73291.76
+  },
+  "bollinger_bands": {
+    "upper": 75519.29,
+    "middle": 74703.09,
+    "lower": 73886.9,
+    "width": 2.19
+  },
+  "rsi": {
+    "rsi6": 53.21,
+    "rsi14": 53.68,
+    "rsi26": 53.9
+  },
+  "macd": {
+    "value": 140.19,
+    "signal": 96.78,
+    "histogram": 43.4,
+    "histogram_prev": 55.15
+  },
+  "kdj": {
+    "k": 71.58,
+    "d": 72.49,
+    "j": 69.75
+  },
+  "atr": {
+    "value": 527.73,
+    "atr_percent": 0.7
+  },
+  "momentum": {
+    "momentum10": 982.32,
+    "roc10": 1.33
+  },
+  "wr": {
+    "wr14": -26.03
+  },
+  "trend_analysis": {
+    "ema_alignment": "多头",
+    "price_vs_bb": "布林中",
+    "rsi_level": "中性",
+    "macd_signal": "盘整"
+  }
+}

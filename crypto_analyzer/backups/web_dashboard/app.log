@@ -1,0 +1,27 @@
+============================================================
+增强版虚拟币分析系统 - 双模型独立分析版
+============================================================
+访问地址: http://localhost:5000
+功能:
+  [+] DeepSeek独立分析
+  [+] MiniMax独立分析
+  [+] 双模型比对
+  [+] 技术指标评分
+  [+] 支撑阻力位
+  [+] 综合信号
+============================================================
+ * Serving Flask app 'app'
+ * Debug mode: off
+INFO:werkzeug:[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://10.0.0.101:5000
+INFO:werkzeug:[33mPress CTRL+C to quit[0m
+INFO:werkzeug:127.0.0.1 - - [16/Apr/2026 08:27:20] "GET /api/status HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [16/Apr/2026 08:27:27] "OPTIONS /api/latest HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [16/Apr/2026 08:27:27] "OPTIONS /api/market_summary HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [16/Apr/2026 08:27:27] "OPTIONS /api/status HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [16/Apr/2026 08:27:27] "GET /api/latest HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [16/Apr/2026 08:27:27] "GET /api/market_summary HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [16/Apr/2026 08:27:27] "GET /api/status HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [16/Apr/2026 08:27:28] "POST /api/analyze HTTP/1.1" 200 -

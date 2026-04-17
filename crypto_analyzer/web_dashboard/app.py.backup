@@ -1,0 +1,319 @@
+#!/usr/bin/env python3
+"""
+虚拟币分析系统 - Web仪表板
+Flask Web应用，提供RESTful API和Web界面
+"""
+
+from flask import Flask, render_template, jsonify, request, make_response
+from pathlib import Path
+import json
+import os
+from datetime import datetime
+
+app = Flask(__name__)
+
+# CORS装饰器函数
+def add_cors_headers(response):
+    """为响应添加CORS头"""
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    response.headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS'
+    response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
+    return response
+
+# 配置路径
+PROJECT_ROOT = Path(__file__).parent.parent.absolute()
+RESULTS_DIR = PROJECT_ROOT / 'results'
+
+# 确保结果目录存在
+RESULTS_DIR.mkdir(exist_ok=True)
+
+
+def load_latest_results():
+    """加载最新分析结果"""
+    latest_file = RESULTS_DIR / 'latest.json'
+    
+    if not latest_file.exists():
+        return None
+    
+    try:
+        with open(latest_file, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except Exception as e:
+        print(f"加载结果失败: {e}")
+        return None
+
+
+@app.route('/')
+def index():
+    """主页"""
+    return render_template('index.html')
+
+
+@app.route('/api/latest')
+def get_latest():
+    """获取最新分析结果"""
+    data = load_latest_results()
+    
+    if not data:
+        return jsonify({'error': 'No analysis results found'}), 404
+    
+    return jsonify(data)
+
+
+@app.route('/api/market_summary')
+def get_market_summary():
+    """获取市场总结"""
+    data = load_latest_results()
+    
+    if not data:
+        return jsonify({'error': 'No analysis results found'}), 404
+    
+    symbols = data.get('symbols', [])
+    market_summary = data.get('market_summary', {})
+    
+    # 信号分布
+    signal_counts = {
+        'STRONG_BUY': 0,
+        'BUY': 0,
+        'NEUTRAL': 0,
+        'SELL': 0,
+        'STRONG_SELL': 0
+    }
+    
+    for symbol_data in symbols:
+        signal = symbol_data.get('signal', {}).get('signal', 'NEUTRAL')
+        if signal in signal_counts:
+            signal_counts[signal] += 1
+    
+    # 最强最弱币种
+    sorted_by_score = sorted(symbols, key=lambda x: x.get('signal', {}).get('composite_score', 0), reverse=True)
+    strongest = sorted_by_score[0] if sorted_by_score else None
+    weakest = sorted_by_score[-1] if sorted_by_score else None
+    
+    # 市场情绪
+    buy_signals = signal_counts['STRONG_BUY'] + signal_counts['BUY']
+    sell_signals = signal_counts['STRONG_SELL'] + signal_counts['SELL']
+    
+    if buy_signals > sell_signals:
+        sentiment = 'bullish'
+        action = '积极买入'
+    elif sell_signals > buy_signals:
+        sentiment = 'bearish'
+        action = '考虑卖出'
+    else:
+        sentiment = 'neutral'
+        action = '观望为主'
+    
+    return jsonify({
+        'timestamp': data.get('analysis_time'),
+        'fear_greed_index': market_summary.get('fear_greed_index', 50),
+        'fear_greed_classification': market_summary.get('fear_greed_classification', 'Neutral'),
+        'market_sentiment': sentiment,
+        'trading_advice': action,
+        'signal_distribution': signal_counts,
+        'total_coins': len(symbols),
+        'strongest_coin': {
+            'symbol': strongest.get('symbol') if strongest else None,
+            'signal': strongest.get('signal', {}).get('signal') if strongest else None,
+            'score': strongest.get('signal', {}).get('composite_score') if strongest else None
+        },
+        'weakest_coin': {
+            'symbol': weakest.get('symbol') if weakest else None,
+            'signal': weakest.get('signal', {}).get('signal') if weakest else None,
+            'score': weakest.get('signal', {}).get('composite_score') if weakest else None
+        }
+    })
+
+
+@app.route('/api/coin/<symbol>')
+def get_coin_detail(symbol):
+    """获取币种详情"""
+    data = load_latest_results()
+    
+    if not data:
+        return jsonify({'error': 'No analysis results found'}), 404
+    
+    # 查找对应币种
+    symbol_data = None
+    for s in data.get('symbols', []):
+        if s.get('symbol', '').upper() == symbol.upper():
+            symbol_data = s
+            break
+    
+    if not symbol_data:
+        return jsonify({'error': f'Symbol {symbol} not found'}), 404
+    
+    # 提取关键价位
+    key_levels = symbol_data.get('key_levels', {})
+    current_price = key_levels.get('current_price', symbol_data.get('price_data', {}).get('price', 0))
+    
+    # 计算距离支撑/阻力的百分比
+    support = key_levels.get('nearest_support')
+    resistance = key_levels.get('nearest_resistance')
+    
+    support_distance_pct = 0
+    resistance_distance_pct = 0
+    
+    if support and current_price:
+        support_distance_pct = round((current_price - support) / current_price * 100, 2)
+    
+    if resistance and current_price:
+        resistance_distance_pct = round((resistance - current_price) / current_price * 100, 2)
+    
+    # 风险评估
+    downside_risk = abs(support_distance_pct) if support_distance_pct < 0 else support_distance_pct
+    upside_potential = resistance_distance_pct if resistance_distance_pct > 0 else 0
+    
+    risk_reward_ratio = 0
+    if downside_risk > 0:
+        risk_reward_ratio = round(upside_potential / downside_risk, 2)
+    
+    return jsonify({
+        'analysis_time': data.get('analysis_time'),
+        'symbol': symbol_data.get('symbol'),
+        'price_data': {
+            'price': symbol_data.get('price_data', {}).get('price'),
+            'price_change': symbol_data.get('price_data', {}).get('price_change'),
+            'price_change_percent': symbol_data.get('price_data', {}).get('price_change_percent'),
+            'high_24h': symbol_data.get('price_data', {}).get('high_24h'),
+            'low_24h': symbol_data.get('price_data', {}).get('low_24h'),
+            'volume_24h': symbol_data.get('price_data', {}).get('volume_24h')
+        },
+        'signal_data': {
+            'signal': symbol_data.get('signal', {}).get('signal'),
+            'action': symbol_data.get('signal', {}).get('action'),
+            'description': f"{symbol_data.get('signal', {}).get('action')} - {'多数指标显示看涨' if symbol_data.get('signal', {}).get('signal') in ['BUY', 'STRONG_BUY'] else '指标矛盾或无明确趋势' if symbol_data.get('signal', {}).get('signal') == 'NEUTRAL' else '多数指标显示看跌'}",
+            'composite_score': symbol_data.get('signal', {}).get('composite_score'),
+            'breakdown': symbol_data.get('signal', {}).get('breakdown', {})
+        },
+        'technical_indicators': symbol_data.get('technical_indicators', {}),
+        'key_levels': {
+            'current_price': current_price,
+            'pivot': key_levels.get('pivot'),
+            'nearest_support': support,
+            'nearest_resistance': resistance,
+            'support_distance_pct': support_distance_pct,
+            'resistance_distance_pct': resistance_distance_pct,
+            'all_supports': key_levels.get('all_supports', []),
+            'all_resistances': key_levels.get('all_resistances', [])
+        },
+        'sentiment': symbol_data.get('sentiment', {}),
+        'risk_assessment': {
+            'downside_risk': downside_risk,
+            'upside_potential': upside_potential,
+            'risk_reward_ratio': risk_reward_ratio
+        }
+    })
+
+
+@app.route('/api/run_analysis')
+def run_analysis():
+    """运行新的分析"""
+    try:
+        # 导入并运行分析脚本
+        import sys
+        sys.path.insert(0, str(PROJECT_ROOT))
+        
+        # 尝试运行新的分析器
+        try:
+            from crypto_analyzer_v2 import main as run_analysis_v2
+            run_analysis_v2()
+        except ImportError:
+            # 如果新版本不存在，使用简单版本
+            from simple_analysis import main as run_simple_analysis
+            run_simple_analysis()
+        
+        return jsonify({
+            'status': 'success',
+            'message': 'Analysis completed successfully',
+            'timestamp': datetime.now().isoformat()
+        })
+    except Exception as e:
+        import traceback
+        return jsonify({
+            'status': 'error',
+            'message': str(e),
+            'traceback': traceback.format_exc()
+        }), 500
+
+
+@app.route('/api/status')
+def get_status():
+    """获取系统状态"""
+    latest_file = RESULTS_DIR / 'latest.json'
+    
+    status = {
+        'status': 'running',
+        'timestamp': datetime.now().isoformat(),
+        'results_count': len(list(RESULTS_DIR.glob('analysis_*.json'))) if RESULTS_DIR.exists() else 0,
+        'latest_analysis': None,
+        'analysis_age_seconds': None,
+        'disk_usage': {
+            'results_dir_bytes': 0,
+            'results_dir_mb': 0
+        }
+    }
+    
+    if latest_file.exists():
+        try:
+            # 获取文件修改时间
+            mtime = datetime.fromtimestamp(latest_file.stat().st_mtime)
+            status['latest_analysis'] = mtime.isoformat()
+            
+            # 计算年龄
+            age = (datetime.now() - mtime).total_seconds()
+            status['analysis_age_seconds'] = int(age)
+            
+            # 计算目录大小
+            total_size = sum(f.stat().st_size for f in RESULTS_DIR.glob('*') if f.is_file())
+            status['disk_usage']['results_dir_bytes'] = total_size
+            status['disk_usage']['results_dir_mb'] = round(total_size / (1024 * 1024), 4)
+            
+        except Exception as e:
+            print(f"获取状态失败: {e}")
+    
+    return jsonify(status)
+
+
+@app.route('/api/history')
+def get_history():
+    """获取分析历史"""
+    if not RESULTS_DIR.exists():
+        return jsonify({'error': 'No history found'}), 404
+    
+    files = sorted(RESULTS_DIR.glob('analysis_*.json'), key=lambda x: x.stat().st_mtime, reverse=True)
+    
+    history = []
+    for f in files[:20]:  # 限制返回20条
+        try:
+            with open(f, 'r', encoding='utf-8') as file:
+                data = json.load(file)
+                history.append({
+                    'filename': f.name,
+                    'analysis_time': data.get('analysis_time'),
+                    'symbols': [s.get('symbol') for s in data.get('symbols', [])],
+                    'market_sentiment': data.get('market_summary', {}).get('market_sentiment'),
+                    'fear_greed_index': data.get('market_summary', {}).get('fear_greed_index')
+                })
+        except Exception as e:
+            continue
+    
+    return jsonify({'history': history})
+
+
+@app.after_request
+def after_request(response):
+    """为所有API响应添加CORS头"""
+    return add_cors_headers(response)
+
+
+if __name__ == '__main__':
+    print("="*60)
+    print("虚拟币分析系统 - Web仪表板")
+    print("="*60)
+    print(f"项目目录: {PROJECT_ROOT}")
+    print(f"结果目录: {RESULTS_DIR}")
+    print(f"访问地址: http://localhost:5000")
+    print("="*60)
+    
+    app.run(host='0.0.0.0', port=5000, debug=False)

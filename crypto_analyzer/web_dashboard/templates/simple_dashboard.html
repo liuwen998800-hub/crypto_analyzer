@@ -1,0 +1,200 @@
+            } else {
+                scoreCircle.className = 'score-circle score-low';
+            }
+            
+            // 更新信号
+            const signal = data.signal.signal;
+            const signalBadge = document.getElementById('signalBadge');
+            signalBadge.textContent = signal;
+            signalBadge.className = 'signal-badge';
+            
+            switch(signal) {
+                case 'STRONG_BUY':
+                    signalBadge.classList.add('signal-strong-buy');
+                    break;
+                case 'BUY':
+                    signalBadge.classList.add('signal-buy');
+                    break;
+                case 'NEUTRAL':
+                    signalBadge.classList.add('signal-neutral');
+                    break;
+                case 'SELL':
+                    signalBadge.classList.add('signal-sell');
+                    break;
+                case 'STRONG_SELL':
+                    signalBadge.classList.add('signal-strong-sell');
+                    break;
+            }
+            
+            // 更新AI分析
+            const aiData = data.ai_analysis.consensus;
+            const aiHtml = `
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span>AI共识方向</span>
+                        <span class="badge ${aiData.direction === 'bullish' ? 'bg-success' : aiData.direction === 'bearish' ? 'bg-danger' : 'bg-warning'}">
+                            ${aiData.direction === 'bullish' ? '看涨' : aiData.direction === 'bearish' ? '看跌' : '中性'}
+                        </span>
+                    </div>
+                    <div class="progress">
+                        <div class="progress-bar ${aiData.direction === 'bullish' ? 'bg-success' : aiData.direction === 'bearish' ? 'bg-danger' : 'bg-warning'}" 
+                             style="width: ${aiData.confidence}%"></div>
+                    </div>
+                    <small class="text-muted">置信度: ${aiData.confidence}%</small>
+                </div>
+                <div class="mb-3">
+                    <strong>分析理由:</strong>
+                    <p class="mt-1">${aiData.reasoning}</p>
+                </div>
+                <div>
+                    <strong>模型一致性:</strong>
+                    <div class="progress mt-1">
+                        <div class="progress-bar bg-info" style="width: ${aiData.agreement_score || 80}%"></div>
+                    </div>
+                    <small class="text-muted">${aiData.agreement_score || 80}% 一致性</small>
+                </div>
+            `;
+            document.getElementById('aiAnalysisContent').innerHTML = aiHtml;
+            
+            // 更新技术指标
+            const indicators = data.technical_indicators.core_indicators;
+            let indicatorsHtml = '';
+            
+            if (indicators.rsi) {
+                indicatorsHtml += `
+                    <div class="indicator-item">
+                        <div class="d-flex justify-content-between">
+                            <span class="indicator-name">RSI</span>
+                            <span class="indicator-value">${indicators.rsi.value.toFixed(2)}</span>
+                        </div>
+                        <div class="progress mt-1">
+                            <div class="progress-bar ${indicators.rsi.value > 70 ? 'bg-danger' : indicators.rsi.value < 30 ? 'bg-success' : 'bg-info'}" 
+                                 style="width: ${indicators.rsi.value}%"></div>
+                        </div>
+                        <small class="text-muted">${indicators.rsi.value > 70 ? '超买' : indicators.rsi.value < 30 ? '超卖' : '正常'}</small>
+                    </div>
+                `;
+            }
+            
+            if (indicators.macd) {
+                const macdSignal = indicators.macd.value > 0 ? '看涨' : '看跌';
+                indicatorsHtml += `
+                    <div class="indicator-item">
+                        <div class="d-flex justify-content-between">
+                            <span class="indicator-name">MACD</span>
+                            <span class="indicator-value ${indicators.macd.value > 0 ? 'text-success' : 'text-danger'}">
+                                ${indicators.macd.value.toFixed(2)}
+                            </span>
+                        </div>
+                        <small class="text-muted">${macdSignal}信号</small>
+                    </div>
+                `;
+            }
+            
+            if (indicators.moving_averages) {
+                indicatorsHtml += `
+                    <div class="indicator-item">
+                        <div class="d-flex justify-content-between">
+                            <span class="indicator-name">移动平均线</span>
+                            <span class="indicator-value ${indicators.moving_averages.signal === 'bullish' ? 'text-success' : indicators.moving_averages.signal === 'bearish' ? 'text-danger' : 'text-warning'}">
+                                ${indicators.moving_averages.signal === 'bullish' ? '多头排列' : indicators.moving_averages.signal === 'bearish' ? '空头排列' : '中性'}
+                            </span>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            if (indicators.bollinger_bands) {
+                const bbPosition = indicators.bollinger_bands.position;
+                let bbStatus = '正常';
+                if (bbPosition > 80) bbStatus = '上轨压力';
+                else if (bbPosition < 20) bbStatus = '下轨支撑';
+                
+                indicatorsHtml += `
+                    <div class="indicator-item">
+                        <div class="d-flex justify-content-between">
+                            <span class="indicator-name">布林带位置</span>
+                            <span class="indicator-value">${bbPosition.toFixed(1)}%</span>
+                        </div>
+                        <small class="text-muted">${bbStatus}</small>
+                    </div>
+                `;
+            }
+            
+            document.getElementById('technicalIndicatorsContent').innerHTML = indicatorsHtml || '<p class="text-muted">无指标数据</p>';
+            
+            // 更新支撑阻力位
+            const srData = data.support_resistance;
+            let supportsHtml = '';
+            let resistancesHtml = '';
+            
+            if (srData.key_supports && srData.key_supports.length > 0) {
+                srData.key_supports.forEach((support, index) => {
+                    supportsHtml += `
+                        <div class="mb-2">
+                            <div class="d-flex justify-content-between">
+                                <span>$${support.level.toLocaleString()}</span>
+                                <span class="badge ${support.strength > 80 ? 'bg-success' : support.strength > 60 ? 'bg-warning' : 'bg-secondary'}">
+                                    强度 ${support.strength}%
+                                </span>
+                            </div>
+                            <div class="progress" style="height: 5px;">
+                                <div class="progress-bar bg-success" style="width: ${support.strength}%"></div>
+                            </div>
+                        </div>
+                    `;
+                });
+            } else {
+                supportsHtml = '<p class="text-muted">暂无支撑位数据</p>';
+            }
+            
+            if (srData.key_resistances && srData.key_resistances.length > 0) {
+                srData.key_resistances.forEach((resistance, index) => {
+                    resistancesHtml += `
+                        <div class="mb-2">
+                            <div class="d-flex justify-content-between">
+                                <span>$${resistance.level.toLocaleString()}</span>
+                                <span class="badge ${resistance.strength > 80 ? 'bg-danger' : resistance.strength > 60 ? 'bg-warning' : 'bg-secondary'}">
+                                    强度 ${resistance.strength}%
+                                </span>
+                            </div>
+                            <div class="progress" style="height: 5px;">
+                                <div class="progress-bar bg-danger" style="width: ${resistance.strength}%"></div>
+                            </div>
+                        </div>
+                    `;
+                });
+            } else {
+                resistancesHtml = '<p class="text-muted">暂无阻力位数据</p>';
+            }
+            
+            document.getElementById('supportLevels').innerHTML = supportsHtml;
+            document.getElementById('resistanceLevels').innerHTML = resistancesHtml;
+            
+            // 更新系统状态
+            checkSystemStatus();
+        }
+        
+        // 模拟初始数据
+        function simulateInitialData() {
+            // 设置默认币种显示
+            updateCoinDisplay();
+            
+            // 设置默认时间框架显示
+            document.getElementById('currentTimeframe').textContent = '1小时框架';
+            
+            // 显示欢迎信息
+            document.getElementById('aiAnalysisContent').innerHTML = `
+                <div class="text-center">
+                    <i class="bi bi-robot" style="font-size: 3rem; color: #6c757d;"></i>
+                    <h5 class="mt-3">欢迎使用增强版分析系统</h5>
+                    <p class="text-muted">选择币种和时间框架，然后点击"开始AI分析"获取专业分析结果</p>
+                </div>
+            `;
+        }
+        
+        // 自动刷新系统状态（每30秒）
+        setInterval(checkSystemStatus, 30000);
+    </script>
+</body>
+</html>

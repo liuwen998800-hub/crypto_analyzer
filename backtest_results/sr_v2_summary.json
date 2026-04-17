@@ -1,0 +1,13 @@
+{
+  "strategy": "SR_V2",
+  "symbol": "BTCUSDT",
+  "initial_capital": 10000,
+  "final_equity": 6663.872670154263,
+  "total_return_pct": -33.36127329845737,
+  "annual_return_pct": -33.49456271035328,
+  "sharpe": -1.5267693804352713,
+  "max_drawdown_pct": 34.58105481441436,
+  "total_trades": 65,
+  "win_rate": 24.615384615384617,
+  "profit_factor": 0.6566779814871685
+}

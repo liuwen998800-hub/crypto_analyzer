@@ -1,0 +1,12 @@
+{
+  "strategy": "SR_V5_DualPeriod",
+  "initial": 10000,
+  "final": 14894.938956506423,
+  "total_return_pct": 48.94938956506423,
+  "annual_return_pct": 49.24242895369297,
+  "sharpe": 1.9257629917179224,
+  "max_drawdown_pct": 12.295785578300377,
+  "total_trades": 33,
+  "win_rate": 48.484848484848484,
+  "profit_factor": 2.1445203275015023
+}

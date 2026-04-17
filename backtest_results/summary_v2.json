@@ -1,0 +1,13 @@
+{
+  "strategy": "V2_TrendFilter_MultiSignal",
+  "period": "2024-04-25 ~ 2025-04-16",
+  "initial_capital": 10000,
+  "final_equity": 9783.491262929017,
+  "total_return_pct": -2.1650873707098253,
+  "annual_return_pct": -0.09348674534614965,
+  "sharpe_ratio": 0.0991450490885227,
+  "max_drawdown_pct": 19.02524672974735,
+  "total_trades": 17,
+  "win_rate": 35.294117647058826,
+  "profit_factor": 0.6273500507498366
+}

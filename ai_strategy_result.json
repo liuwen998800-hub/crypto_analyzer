@@ -1,0 +1,12 @@
+{
+  "strategy": "AI\u5206\u6790\u7f6e\u4fe1\u5ea6>=65%\u62bc\u6ce8",
+  "bankroll": 16.0,
+  "roi": -98.4,
+  "total_days": 8,
+  "bet_days": 6,
+  "skipped": 2,
+  "total_trades": 192,
+  "wins": 90,
+  "losses": 102,
+  "winrate": 46.875
+}

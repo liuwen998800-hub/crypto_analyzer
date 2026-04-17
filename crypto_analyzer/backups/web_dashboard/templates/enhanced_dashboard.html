@@ -1,0 +1,407 @@
+            // 布林带
+            if (core.bollinger_bands) {
+                html += `
+                    <div class="indicator-card">
+                        <div class="small text-muted">布林带位置</div>
+                        <div class="indicator-value">${core.bollinger_bands.position?.toFixed(2) || '--'}%</div>
+                        <div class="indicator-score ${getScoreClass(core.bollinger_bands.confidence)}">
+                            ${core.bollinger_bands.confidence || '--'}%
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // KD指标
+            if (momentum.stochastic) {
+                html += `
+                    <div class="indicator-card">
+                        <div class="small text-muted">KD指标</div>
+                        <div class="indicator-value">K:${momentum.stochastic.k?.toFixed(2) || '--'}</div>
+                        <div class="indicator-score ${getScoreClass(momentum.stochastic.confidence)}">
+                            ${momentum.stochastic.confidence || '--'}%
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // ADX
+            const trend = indicators.trend_indicators || {};
+            if (trend.adx) {
+                html += `
+                    <div class="indicator-card">
+                        <div class="small text-muted">ADX趋势强度</div>
+                        <div class="indicator-value">${trend.adx.value?.toFixed(2) || '--'}</div>
+                        <div class="indicator-score ${getScoreClass(trend.adx.confidence)}">
+                            ${trend.adx.confidence || '--'}%
+                        </div>
+                    </div>
+                `;
+            }
+            
+            html += '</div>';
+            document.getElementById('technicalIndicatorsContent').innerHTML = html;
+        }
+
+        // 更新支撑阻力位
+        function updateSupportResistance(srData) {
+            const supports = srData.key_supports || [];
+            const resistances = srData.key_resistances || [];
+            const denseZones = srData.dense_trading_zones || [];
+            
+            let html = '<div class="row">';
+            
+            // 支撑位
+            html += '<div class="col-md-6">';
+            html += '<h6 class="mb-3">支撑位</h6>';
+            if (supports.length > 0) {
+                supports.forEach((support, index) => {
+                    html += `
+                        <div class="support-level">
+                            <div class="d-flex justify-content-between">
+                                <strong>$${formatNumber(support.level)}</strong>
+                                <span class="badge ${support.strength > 85 ? 'bg-success' : 'bg-secondary'}">
+                                    ${support.type === 'major' ? '强' : '弱'}
+                                </span>
+                            </div>
+                            <div class="small text-muted">
+                                强度: ${support.strength}%
+                            </div>
+                        </div>
+                    `;
+                });
+            } else {
+                html += '<div class="text-muted small">无支撑位数据</div>';
+            }
+            html += '</div>';
+            
+            // 阻力位
+            html += '<div class="col-md-6">';
+            html += '<h6 class="mb-3">阻力位</h6>';
+            if (resistances.length > 0) {
+                resistances.forEach((resistance, index) => {
+                    html += `
+                        <div class="resistance-level">
+                            <div class="d-flex justify-content-between">
+                                <strong>$${formatNumber(resistance.level)}</strong>
+                                <span class="badge ${resistance.strength > 85 ? 'bg-danger' : 'bg-secondary'}">
+                                    ${resistance.type === 'major' ? '强' : '弱'}
+                                </span>
+                            </div>
+                            <div class="small text-muted">
+                                强度: ${resistance.strength}%
+                            </div>
+                        </div>
+                    `;
+                });
+            } else {
+                html += '<div class="text-muted small">无阻力位数据</div>';
+            }
+            html += '</div>';
+            
+            // 密集成交区
+            if (denseZones.length > 0) {
+                html += '<div class="col-12 mt-3">';
+                html += '<h6 class="mb-3">密集成交区</h6>';
+                denseZones.forEach((zone, index) => {
+                    html += `
+                        <div class="alert alert-${zone.type === 'support' ? 'success' : 'danger'} alert-custom mb-2">
+                            <div class="d-flex justify-content-between">
+                                <span>$${formatNumber(zone.start)} - $${formatNumber(zone.end)}</span>
+                                <span>成交量密度: ${zone.volume_density}%</span>
+                            </div>
+                            <div class="small">
+                                ${zone.type === 'support' ? '支撑区域' : '阻力区域'}
+                            </div>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+            }
+            
+            html += '</div>';
+            document.getElementById('supportResistanceContent').innerHTML = html;
+        }
+
+        // 更新市场情绪
+        function updateMarketSentiment(sentiment) {
+            const fearGreed = sentiment.fear_greed_index || 50;
+            const overall = sentiment.overall || 'neutral';
+            const confidence = sentiment.confidence || 50;
+            
+            let html = `
+                <div class="text-center mb-3">
+                    <div class="h2 mb-1">${fearGreed}/100</div>
+                    <div class="small text-muted">恐惧贪婪指数</div>
+                </div>
+                
+                <div class="confidence-bar mb-3">
+                    <div class="confidence-marker" style="left: ${fearGreed}%;"></div>
+                </div>
+                
+                <div class="d-flex justify-content-between mb-2">
+                    <small>极度恐惧</small>
+                    <small>极度贪婪</small>
+                </div>
+                
+                <div class="mt-4">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span>市场情绪:</span>
+                        <span class="badge ${getDirectionClass(overall)}">
+                            ${overall.toUpperCase()}
+                        </span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span>情绪置信度:</span>
+                        <span>${confidence}%</span>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('marketSentimentContent').innerHTML = html;
+        }
+
+        // 更新详细技术指标
+        function updateDetailedIndicators(indicators) {
+            const categories = [
+                { name: '核心指标', data: indicators.core_indicators || {} },
+                { name: '动量指标', data: indicators.momentum_indicators || {} },
+                { name: '趋势指标', data: indicators.trend_indicators || {} },
+                { name: '波动率指标', data: indicators.volatility_indicators || {} },
+                { name: '成交量指标', data: indicators.volume_indicators || {} },
+                { name: '形态识别', data: indicators.pattern_recognition || {} }
+            ];
+            
+            let html = '';
+            
+            categories.forEach(category => {
+                if (Object.keys(category.data).length > 0) {
+                    html += `
+                        <div class="col-md-6 col-lg-4 mb-4">
+                            <div class="card h-100">
+                                <div class="card-header">
+                                    <i class="bi bi-graph-up me-2"></i>${category.name}
+                                </div>
+                                <div class="card-body">
+                    `;
+                    
+                    for (const [key, value] of Object.entries(category.data)) {
+                        if (typeof value === 'object' && value !== null) {
+                            html += `<div class="mb-2"><strong>${key}:</strong></div>`;
+                            for (const [subKey, subValue] of Object.entries(value)) {
+                                if (typeof subValue === 'number') {
+                                    html += `<div class="small">${subKey}: ${subValue.toFixed(4)}</div>`;
+                                } else {
+                                    html += `<div class="small">${subKey}: ${subValue}</div>`;
+                                }
+                            }
+                        } else {
+                            html += `<div class="small">${key}: ${value}</div>`;
+                        }
+                    }
+                    
+                    html += `
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+            });
+            
+            document.getElementById('detailedIndicators').innerHTML = html || '<div class="col-12 text-center text-muted">无详细指标数据</div>';
+        }
+
+        // 显示分析模态框
+        function showAnalysisModal() {
+            if (!analysisData) return;
+            
+            const modalTitle = document.getElementById('modalTitle');
+            const modalBody = document.getElementById('modalBody');
+            
+            modalTitle.textContent = `${currentSymbol} - ${currentTimeframe}分析结果`;
+            
+            let html = `
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>价格信息</h6>
+                        <table class="table table-dark table-sm">
+                            <tr>
+                                <td>当前价格</td>
+                                <td>$${formatNumber(analysisData.price_data?.current_price || 0)}</td>
+                            </tr>
+                            <tr>
+                                <td>24小时涨跌幅</td>
+                                <td class="${(analysisData.price_data?.price_change_pct_24h || 0) >= 0 ? 'text-success' : 'text-danger'}">
+                                    ${formatNumber(analysisData.price_data?.price_change_pct_24h || 0, true)}%
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>24小时最高</td>
+                                <td>$${formatNumber(analysisData.price_data?.high_24h || 0)}</td>
+                            </tr>
+                            <tr>
+                                <td>24小时最低</td>
+                                <td>$${formatNumber(analysisData.price_data?.low_24h || 0)}</td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>交易信号</h6>
+                        <table class="table table-dark table-sm">
+                            <tr>
+                                <td>综合评分</td>
+                                <td>${analysisData.composite_score?.composite || 0}/100</td>
+                            </tr>
+                            <tr>
+                                <td>信号</td>
+                                <td>
+                                    <span class="badge ${getSignalClass(analysisData.signal?.signal)}">
+                                        ${analysisData.signal?.signal || 'NEUTRAL'}
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>AI共识</td>
+                                <td>
+                                    <span class="badge ${getDirectionClass(analysisData.ai_analysis?.consensus?.direction)}">
+                                        ${analysisData.ai_analysis?.consensus?.direction?.toUpperCase() || 'NEUTRAL'}
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>AI置信度</td>
+                                <td>${analysisData.ai_analysis?.consensus?.confidence || 0}%</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <h6>AI分析详情</h6>
+                        <div class="alert alert-info alert-custom">
+                            ${analysisData.ai_analysis?.consensus?.reasoning || '无AI分析结果'}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <h6>操作建议</h6>
+                        <div class="alert ${getSignalAlertClass(analysisData.signal?.signal)} alert-custom">
+                            <strong>${analysisData.signal?.description || '无建议'}</strong>
+                            <div class="mt-2 small">
+                                基于技术指标、AI分析和市场情绪的综合判断。
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            modalBody.innerHTML = html;
+            
+            // 显示模态框
+            const modal = new bootstrap.Modal(document.getElementById('analysisResultModal'));
+            modal.show();
+        }
+
+        // 保存分析结果
+        async function saveAnalysis() {
+            if (!analysisData) return;
+            
+            try {
+                // 这里应该调用API保存分析结果
+                // 暂时只显示成功消息
+                showAlert('分析结果已保存！', 'success');
+                
+                // 关闭模态框
+                const modal = bootstrap.Modal.getInstance(document.getElementById('analysisResultModal'));
+                modal.hide();
+                
+            } catch (error) {
+                console.error('保存失败:', error);
+                showAlert('保存失败: ' + error.message, 'danger');
+            }
+        }
+
+        // 显示提示消息
+        function showAlert(message, type) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type} alert-custom alert-dismissible fade show position-fixed`;
+            alertDiv.style.top = '20px';
+            alertDiv.style.right = '20px';
+            alertDiv.style.zIndex = '9999';
+            alertDiv.style.minWidth = '300px';
+            
+            alertDiv.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"></button>
+            `;
+            
+            document.body.appendChild(alertDiv);
+            
+            // 3秒后自动消失
+            setTimeout(() => {
+                if (alertDiv.parentNode) {
+                    alertDiv.remove();
+                }
+            }, 3000);
+        }
+
+        // 辅助函数
+        function formatNumber(num, showSign = false) {
+            if (num === undefined || num === null) return '--';
+            
+            let formatted;
+            if (Math.abs(num) >= 1000) {
+                formatted = num.toLocaleString('en-US', { 
+                    minimumFractionDigits: 2, 
+                    maximumFractionDigits: 2 
+                });
+            } else {
+                formatted = num.toFixed(2);
+            }
+            
+            if (showSign && num > 0) {
+                return '+' + formatted;
+            }
+            return formatted;
+        }
+
+        function getDirectionClass(direction) {
+            switch(direction?.toLowerCase()) {
+                case 'bullish': return 'bg-success';
+                case 'bearish': return 'bg-danger';
+                default: return 'bg-warning';
+            }
+        }
+
+        function getSignalClass(signal) {
+            switch(signal) {
+                case 'STRONG_BUY': return 'bg-success';
+                case 'BUY': return 'bg-info';
+                case 'NEUTRAL': return 'bg-warning';
+                case 'SELL': return 'bg-danger';
+                case 'STRONG_SELL': return 'bg-dark';
+                default: return 'bg-secondary';
+            }
+        }
+
+        function getSignalAlertClass(signal) {
+            switch(signal) {
+                case 'STRONG_BUY': return 'success';
+                case 'BUY': return 'info';
+                case 'NEUTRAL': return 'warning';
+                case 'SELL': return 'danger';
+                case 'STRONG_SELL': return 'dark';
+                default: return 'secondary';
+            }
+        }
+
+        function getScoreClass(score) {
+            if (score >= 70) return 'score-high';
+            if (score >= 40) return 'score-medium';
+            return 'score-low';
+        }
+    </script>
+</body>
+</html>

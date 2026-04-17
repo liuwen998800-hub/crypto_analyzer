@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>测试按钮功能</title>
+    <style>
+        .btn { padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; margin: 5px; }
+        .btn-primary { background: #007bff; color: white; }
+        .btn-primary.active { background: linear-gradient(135deg, #667eea, #764ba2); }
+        .btn-secondary { background: #6c757d; color: white; }
+        .btn-secondary.active { background: linear-gradient(135deg, #ff9a9e, #fad0c4); }
+        .analyze-btn { 
+            padding: 15px; 
+            font-size: 18px; 
+            background: linear-gradient(135deg, #667eea, #764ba2); 
+            color: white; 
+            border: none; 
+            border-radius: 10px; 
+            cursor: pointer; 
+            margin-top: 15px; 
+        }
+    </style>
+</head>
+<body>
+    <h1>测试按钮点击和渐变色</h1>
+    
+    <div>
+        <h3>币种选择:</h3>
+        <button class="btn btn-primary active" onclick="selectTest('coin', 'BTC', this)">BTC 比特币</button>
+        <button class="btn btn-secondary" onclick="selectTest('coin', 'ETH', this)">ETH 以太坊</button>
+        <button class="btn btn-secondary" onclick="selectTest('coin', 'SOL', this)">SOL Solana</button>
+    </div>
+    
+    <div>
+        <h3>时间框架:</h3>
+        <button class="btn btn-primary active" onclick="selectTest('timeframe', '1h', this)">1小时</button>
+        <button class="btn btn-secondary" onclick="selectTest('timeframe', '4h', this)">4小时</button>
+        <button class="btn btn-secondary" onclick="selectTest('timeframe', '24h', this)">24小时</button>
+    </div>
+    
+    <div>
+        <h3>AI模型:</h3>
+        <button class="btn btn-primary active" onclick="selectTest('model', 'both', this)">双模型</button>
+        <button class="btn btn-secondary" onclick="selectTest('model', 'deepseek', this)">DeepSeek</button>
+        <button class="btn btn-secondary" onclick="selectTest('model', 'minimax', this)">MiniMax</button>
+    </div>
+    
+    <button class="analyze-btn" onclick="testAnalyze()">🔍 开始AI分析</button>
+    
+    <div id="log" style="margin-top: 20px; padding: 10px; background: #f0f0f0; border-radius: 5px;"></div>
+    
+    <script>
+        let selectedCoin = 'BTC';
+        let selectedTimeframe = '1h';
+        let selectedModel = 'both';
+        
+        function selectTest(type, value, button) {
+            // 移除所有同类型按钮的active类
+            const buttons = document.querySelectorAll(`button[onclick*="${type}"]`);
+            buttons.forEach(btn => {
+                btn.classList.remove('active');
+                btn.classList.remove('btn-primary');
+                btn.classList.add('btn-secondary');
+            });
+            
+            // 设置当前按钮为active和primary
+            button.classList.remove('btn-secondary');
+            button.classList.add('btn-primary');
+            button.classList.add('active');
+            
+            // 更新选择
+            if (type === 'coin') selectedCoin = value;
+            if (type === 'timeframe') selectedTimeframe = value;
+            if (type === 'model') selectedModel = value;
+            
+            addLog(`选择了: ${type}=${value}`);
+        }
+        
+        function testAnalyze() {
+            addLog(`开始分析: ${selectedCoin} ${selectedTimeframe} ${selectedModel}`);
+            
+            // 模拟API调用
+            setTimeout(() => {
+                addLog('分析完成!');
+            }, 1000);
+        }
+        
+        function addLog(message) {
+            const logDiv = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            logDiv.innerHTML = `[${timestamp}] ${message}<br>` + logDiv.innerHTML;
+        }
+        
+        addLog('页面加载完成');
+    </script>
+</body>
+</html>

@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>虚拟币分析仪表板</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary-color: #4361ee;
+            --success-color: #4cc9f0;
+            --warning-color: #f72585;
+            --danger-color: #7209b7;
+            --dark-color: #1a1a2e;
+            --light-color: #f8f9fa;
+        }
+        
+        body {
+            background-color: #0f172a;
+            color: #e2e8f0;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+        
+        .navbar {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border-bottom: 1px solid #334155;
+        }
+        
+        .card {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            transition: transform 0.2s;
+        }
+        
+        .card:hover {
+            transform: translateY(-2px);
+        }
+        
+        .card-header {
+            background: rgba(30, 41, 59, 0.8);
+            border-bottom: 1px solid #334155;
+            font-weight: 600;
+        }
+        
+        .signal-strong-buy {
+            color: #10b981;
+            background: rgba(16, 185, 129, 0.1);
+            border-left: 4px solid #10b981;
+        }
+        
+        .signal-buy {
+            color: #3b82f6;
+            background: rgba(59, 130, 246, 0.1);
+            border-left: 4px solid #3b82f6;
+        }
+        
+        .signal-neutral {
+            color: #f59e0b;
+            background: rgba(245, 158, 11, 0.1);
+            border-left: 4px solid #f59e0b;
+        }
+        
+        .signal-sell {
+            color: #ef4444;
+            background: rgba(239, 68, 68, 0.1);
+            border-left: 4px solid #ef4444;
+        }
+        
+        .signal-strong-sell {
+            color: #dc2626;
+            background: rgba(220, 38, 38, 0.1);
+            border-left: 4px solid #dc2626;
+        }
+        
+        .fear-greed-indicator {
+            height: 20px;
+            border-radius: 10px;
+            background: linear-gradient(90deg, #10b981 0%, #f59e0b 50%, #ef4444 100%);
+            position: relative;
+        }
+        
+        .fear-greed-marker {
+            position: absolute;
+            top: -5px;
+            width: 30px;
+            height: 30px;
+            background: white;
+            border-radius: 50%;
+            transform: translateX(-50%);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .price-up {
+            color: #10b981;
+        }
+        
+        .price-down {
+            color: #ef4444;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #4361ee 0%, #3a56d4 100%);
+            border: none;
+            border-radius: 8px;
+            padding: 10px 20px;
+            font-weight: 600;
+        }
+        
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #3a56d4 0%, #2f46c0 100%);
+            transform: translateY(-1px);
+        }
+        
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 200px;
+        }
+        
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-left-color: #4361ee;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .coin-card {
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .coin-card:hover {
+            background: rgba(59, 130, 246, 0.05);
+        }
+        
+        .market-sentiment-bullish {
+            color: #10b981;
+            background: rgba(16, 185, 129, 0.1);
+        }
+        
+        .market-sentiment-bearish {
+            color: #ef4444;
+            background: rgba(239, 68, 68, 0.1);
+        }
+        
+        .market-sentiment-neutral {
+            color: #f59e0b;
+            background: rgba(245, 158, 11, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">
+                <i class="bi bi-graph-up-arrow me-2"></i>
+                <strong>虚拟币分析系统</strong>
+            </a>
+            <div class="d-flex align-items-center">
+                <span class="me-3" id="lastUpdateTime">最后更新: --:--:--</span>
+                <button class="btn btn-primary btn-sm" onclick="runAnalysis()">
+                    <i class="bi bi-arrow-clockwise me-1"></i>重新分析
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid mt-4">
+        <div class="row">
+            <!-- 左侧主内容 -->
+            <div class="col-lg-9">
+                <!-- 市场总结 -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <span><i class="bi bi-speedometer2 me-2"></i>市场总结</span>
+                                <span id="marketSentimentBadge" class="badge">加载中...</span>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <div class="d-flex align-items-center mb-3">
+                                            <div class="me-3">
+                                                <i class="bi bi-emoji-dizzy fs-1 text-warning"></i>
+                                            </div>
+                                            <div>
+                                                <h5 id="fgiValue" class="mb-0">--</h5>
+                                                <small class="text-muted" id="fgiClassification">恐慌贪婪指数</small>
+                                            </div>
+                                        </div>
+                                        <div class="fear-greed-indicator mb-2">
+                                            <div id="fgiMarker" class="fear-greed-marker"></div>
+                                        </div>
+                                        <div class="d-flex justify-content-between">
+                                            <small>极度恐慌</small>
+                                            <small>极度贪婪</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <h6 class="text-muted mb-3">信号分布</h6>
+                                        <div class="row">
+                                            <div class="col-6 mb-2">
+                                                <div class="signal-strong-buy p-2 rounded text-center">
+                                                    <div class="h5 mb-1" id="strongBuyCount">0</div>
+                                                    <small>强烈买入</small>
+                                                </div>
+                                            </div>
+                                            <div class="col-6 mb-2">
+                                                <div class="signal-buy p-2 rounded text-center">
+                                                    <div class="h5 mb-1" id="buyCount">0</div>
+                                                    <small>买入</small>
+                                                </div>
+                                            </div>
+                                            <div class="col-6">
+                                                <div class="signal-sell p-2 rounded text-center">
+                                                    <div class="h5 mb-1" id="sellCount">0</div>
+                                                    <small>卖出</small>
+                                                </div>
+                                            </div>
+                                            <div class="col-6">
+                                                <div class="signal-strong-sell p-2 rounded text-center">
+                                                    <div class="h5 mb-1" id="strongSellCount">0</div>
+                                                    <small>强烈卖出</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <h6 class="text-muted mb-3">交易建议</h6>
+                                        <div class="alert alert-info">
+                                            <i class="bi bi-info-circle me-2"></i>
+                                            <span id="tradingAdvice">加载中...</span>
+                                        </div>
+                                        <div class="mt-3">
+                                            <small class="text-muted">最强币种:</small>
+                                            <div class="h6" id="strongestCoin">--</div>
+                                            <small class="text-muted">最弱币种:</small>
+                                            <div class="h6" id="weakestCoin">--</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 币种分析 -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <i class="bi bi-currency-exchange me-2"></i>币种分析
+                            </div>
+                            <div class="card-body">
+                                <div class="row" id="coinsContainer">
+                                    <!-- 币种卡片将通过JavaScript动态生成 -->
+                                    <div class="loading">
+                                        <div class="spinner"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 价格图表 -->
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <i class="bi bi-bar-chart-line me-2"></i>价格走势
+                            </div>
+                            <div class="card-body">
+                                <canvas id="priceChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 右侧边栏 -->
+            <div class="col-lg-3">
+                <!-- 系统状态 -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <i class="bi bi-server me-2"></i>系统状态
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <small class="text-muted">最后分析时间</small>
+                            <div class="h6" id="lastAnalysisTime">--:--:--</div>
+                        </div>
+                        <div class="mb-3">
+                            <small class="text-muted">分析次数</small>
+                            <div class="h6" id="analysisCount">0</div>
+                        </div>
+                        <div class="mb-3">
+                            <small class="text-muted">数据大小</small>
+                            <div class="h6" id="dataSize">0 MB</div>
+                        </div>
+                        <div class="mt-4">
+                            <button class="btn btn-outline-primary w-100" onclick="refreshData()">
+                                <i class="bi bi-arrow-clockwise me-1"></i>刷新数据
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 信号说明 -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <i class="bi bi-info-circle me-2"></i>信号说明
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-2">
+                            <span class="badge signal-strong-buy p-2 w-100">STRONG_BUY</span>
+                            <small class="text-muted">综合分数 ≥ 80，强烈买入信号</small>
+                        </div>
+                        <div class="mb-2">
+                            <span class="badge signal-buy p-2 w-100">BUY</span>
+                            <small class="text-muted">综合分数 ≥ 60，买入信号</small>
+                        </div>
+                        <div class="mb-2">
+                            <span class="badge signal-neutral p-2 w-100">NEUTRAL</span>
+                            <small class="text-muted">综合分数 40-60，观望</small>
+                        </div>
+                        <div class="mb-2">
+                            <span class="badge signal-sell p-2 w-100">SELL</span>
+                            <small class="text-muted">综合分数 20-40，卖出信号</small>
+                        </div>
+                        <div class="mb-2">
+                            <span class="badge signal-strong-sell p-2 w-100">STRONG_SELL</span>
+                            <small class="text-muted">综合分数 < 20，强烈卖出信号</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 快速操作 -->
+                <div class="card">
+                    <div class="card-header">
+                        <i class="bi bi-lightning me-2"></i>快速操作
+                    </div>
+                    <div class="card-body">
+                        <button class="btn btn-outline-success w-100 mb-2" onclick="viewAllSignals()">
+                            <i class="bi bi-list-check me-1"></i>查看所有信号
+                        </button>
+                        <button class="btn btn-outline-warning w-100 mb-2" onclick="exportData()">
+                            <i class="bi bi-download me-1"></i>导出数据
+                        </button>
+                        <button class="btn btn-outline-info w-100" onclick="showHistory()">
+                            <i class="bi bi-clock-history me-1"></i>查看历史
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 币种详情模态框 -->
+    <div class="modal fade" id="coinDetailModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="coinDetailTitle">币种详情</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="coinDetailContent">
+                    <!-- 详情内容将通过JavaScript动态生成 -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // 全局变量
+        let currentData = null;
+        let priceChart = null;
+
+        // 页面加载时获取数据
+        document.addEventListener('DOMContentLoaded', function() {
+            loadData();
+            setInterval(loadData, 30000); // 每30秒刷新一次
+        });
+
+        // 加载数据
+        async function loadData() {
+            try {
+                // 加载市场总结
+                const summaryResponse = await fetch('/api/market_summary');
+                const summaryData = await summaryResponse.json();
+                
+                if (!summaryData.error) {
+                    updateMarketSummary(summaryData);
+                }
+
+                // 加载最新分析
+                const latestResponse = await fetch('/api/latest');
+                const latestData = await latestResponse.json();
+                
+                if (!latestData.error) {
+                    currentData = latestData;
+                    updateCoinsDisplay(latestData);
+                    updatePriceChart(latestData);
+                    updateLastUpdateTime(latestData.timestamp);
+                }
+
+                // 加载系统状态
+                const statusResponse = await fetch('/api/status');
+                const statusData = await statusResponse.json();
+                updateSystemStatus(statusData);
+
+            } catch (error) {
+                console.error('加载数据失败:', error);
+                showError('无法加载数据，请检查网络连接');
+            }
+        }
+
+        // 更新市场总结
+        function updateMarketSummary(data) {
+            // 恐慌贪婪指数
+            document.getElementById('fgiValue').textContent = data.fear_greed_index;
+            document.getElementById('fgiClassification').textContent = data.fear_greed_classification;
+            
+            // 更新标记位置 (0-100 => 0-100%)
+            const marker = document.getElementById('fgiMarker');
+            marker.style.left = `${data.fear_greed_index}%`;
+            
+            // 信号分布
+            document.getElementById('strongBuyCount').textContent = data.signal_distribution.STRONG_BUY || 0;
+            document.getElementById('buyCount').textContent = data.signal_distribution.BUY || 0;
+            document.getElementById('sellCount').textContent = data.signal_distribution.SELL || 0;
+            document.getElementById('strongSellCount').textContent = data.signal_distribution.STRONG_SELL || 0;
+            
+            // 市场情绪
+            const sentimentBadge = document.getElementById('marketSentimentBadge');
+            sentimentBadge.textContent = data.market_sentiment.toUpperCase();
+            sentimentBadge.className = 'badge market-sentiment-' + data.market_sentiment + ' p-2';
+            
+            // 交易建议
+            document.getElementById('tradingAdvice').textContent = data.trading_advice;
+            
+            // 最强最弱币种
+            if (data.strongest_coin.symbol) {
+                document.getElementById('strongestCoin').innerHTML = 
+                    `<span class="badge signal-buy">${data.strongest_coin.symbol}</span> ` +
+                    `${data.strongest_coin.signal} (${data.strongest_coin.score}分)`;
+            }
+            
+            if (data.weakest_coin.symbol) {
+                document.getElementById('weakestCoin').innerHTML = 
+                    `<span class="badge signal-neutral">${data.weakest_coin.symbol}</span> ` +
+                    `${data.weakest_coin.signal} (${data.weakest_coin.score}分)`;
+            }
+        }
+        
+        // 更新币种显示
+        function updateCoinsDisplay(data) {
+            const coinsContainer = document.getElementById('coinsContainer');
+            const priceData = data.price_data || {};
+            const signalData = data.composite_signals || {};
+            
+            let html = '';
+            
+            for (const [symbol, priceInfo] of Object.entries(priceData)) {
+                const signalInfo = signalData[symbol] || {};
+                const signalClass = getSignalClass(signalInfo.signal || 'NEUTRAL');
+                const changeClass = priceInfo.change_percent >= 0 ? 'price-up' : 'price-down';
+                const changeIcon = priceInfo.change_percent >= 0 ? 'bi-arrow-up' : 'bi-arrow-down';
+                
+                html += `
+                <div class="col-md-4 mb-3">
+                    <div class="card coin-card ${signalClass}" onclick="showCoinDetail('${symbol}')">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <div>
+                                    <h4 class="mb-0">${symbol}</h4>
+                                    <small class="text-muted">${signalInfo.description || '无信号'}</small>
+                                </div>
+                                <div class="text-end">
+                                    <span class="badge ${signalClass} p-2">${signalInfo.signal || 'NEUTRAL'}</span>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <div class="h3 mb-1">$${formatNumber(priceInfo.price)}</div>
+                                <div class="${changeClass}">
+                                    <i class="bi ${changeIcon}"></i>
+                                    ${priceInfo.change_percent >= 0 ? '+' : ''}${priceInfo.change_percent.toFixed(2)}%
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-6">
+                                    <small class="text-muted">综合分数</small>
+                                    <div class="h5">${signalInfo.composite_score || 0}/100</div>
+                                </div>
+                                <div class="col-6">
+                                    <small class="text-muted">成交量</small>
+                                    <div class="h6">${formatVolume(priceInfo.volume)}</div>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-3">
+                                <small class="text-muted">支撑/阻力</small>
+                                <div class="d-flex justify-content-between">
+                                    <span>$${formatNumber(signalInfo.support || 0)}</span>
+                                    <span>$${formatNumber(signalInfo.resistance || 0)}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                `;
+            }
+            
+            coinsContainer.innerHTML = html || '<div class="col-12 text-center text-muted">暂无数据</div>';
+        }
+        
+        // 更新价格图表
+        function updatePriceChart(data) {
+            const ctx = document.getElementById('priceChart').getContext('2d');
+            const priceData = data.price_data || {};
+            
+            const symbols = Object.keys(priceData);
+            const prices = symbols.map(symbol => priceData[symbol].price);
+            const changes = symbols.map(symbol => priceData[symbol].change_percent);
+            
+            // 颜色根据涨跌
+            const colors = changes.map(change => 
+                change >= 0 ? 'rgba(16, 185, 129, 0.8)' : 'rgba(239, 68, 68, 0.8)'
+            );
+            
+            if (priceChart) {
+                priceChart.destroy();
+            }
+            
+            priceChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: symbols,
+                    datasets: [{
+                        label: '价格 ($)',
+                        data: prices,
+                        backgroundColor: colors,
+                        borderColor: colors.map(color => color.replace('0.8', '1')),
+                        borderWidth: 1,
+                        yAxisID: 'y'
+                    }, {
+                        label: '24h变化 (%)',
+                        data: changes,
+                        type: 'line',
+                        borderColor: 'rgba(59, 130, 246, 0.8)',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        borderWidth: 2,
+                        pointRadius: 4,
+                        yAxisID: 'y1'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                    scales: {
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: {
+                                display: true,
+                                text: '价格 ($)',
+                                color: '#94a3b8'
+                            },
+                            grid: {
+                                color: 'rgba(148, 163, 184, 0.1)'
+                            },
+                            ticks: {
+                                color: '#94a3b8',
+                                callback: function(value) {
+                                    return '$' + formatNumber(value);
+                                }
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: {
+                                display: true,
+                                text: '24h变化 (%)',
+                                color: '#94a3b8'
+                            },
+                            grid: {
+                                drawOnChartArea: false,
+                            },
+                            ticks: {
+                                color: '#94a3b8',
+                                callback: function(value) {
+                                    return value.toFixed(2) + '%';
+                                }
+                            }
+                        },
+                        x: {
+                            grid: {
+                                color: 'rgba(148, 163, 184, 0.1)'
+                            },
+                            ticks: {
+                                color: '#94a3b8'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#94a3b8'
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(30, 41, 59, 0.9)',
+                            titleColor: '#e2e8f0',
+                            bodyColor: '#e2e8f0',
+                            borderColor: '#334155',
+                            borderWidth: 1,
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.datasetIndex === 0) {
+                                        label += '$' + formatNumber(context.parsed.y);
+                                    } else {
+                                        label += context.parsed.y.toFixed(2) + '%';
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // 更新最后更新时间
+        function updateLastUpdateTime(timestamp) {
+            if (!timestamp) return;
+            
+            const date = new Date(timestamp);
+            const timeStr = date.toLocaleTimeString('zh-CN');
+            document.getElementById('lastUpdateTime').textContent = `最后更新: ${timeStr}`;
+            document.getElementById('lastAnalysisTime').textContent = timeStr;
+        }
+        
+        // 更新系统状态
+        function updateSystemStatus(data) {
+            document.getElementById('analysisCount').textContent = data.results_count || 0;
+            
+            if (data.disk_usage && data.disk_usage.results_dir_mb) {
+                document.getElementById('dataSize').textContent = data.disk_usage.results_dir_mb + ' MB';
+            }
+        }
+        
+        // 显示币种详情
+        async function showCoinDetail(symbol) {
+            try {
+                const response = await fetch(`/api/coin/${symbol}`);
+                const data = await response.json();
+                
+                if (data.error) {
+                    showError(data.error);
+                    return;
+                }
+                
+                const signalClass = getSignalClass(data.signal_data.signal || 'NEUTRAL');
+                const changeClass = data.price_data.change_percent >= 0 ? 'price-up' : 'price-down';
+                
+                const modalContent = `
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card ${signalClass} mb-3">
+                            <div class="card-body">
+                                <h4 class="card-title">${data.symbol}</h4>
+                                <div class="h1 mb-3">$${formatNumber(data.price_data.price)}</div>
+                                
+                                <div class="mb-3">
+                                    <span class="badge ${signalClass} p-2 fs-6">${data.signal_data.signal}</span>
+                                    <span class="ms-2 ${changeClass}">
+                                        ${data.price_data.change_percent >= 0 ? '+' : ''}${data.price_data.change_percent.toFixed(2)}%
+                                    </span>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <small class="text-muted">信号描述</small>
+                                    <div>${data.signal_data.description}</div>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-6">
+                                        <small class="text-muted">综合分数</small>
+                                        <div class="h4">${data.signal_data.composite_score}/100</div>
+                                    </div>
+                                    <div class="col-6">
+                                        <small class="text-muted">技术分数</small>
+                                        <div class="h4">${data.signal_data.breakdown.technical_score}/100</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="card mb-3">
+                            <div class="card-body">
+                                <h5 class="card-title">关键价位</h5>
+                                <div class="mb-3">
+                                    <small class="text-muted">当前价格</small>
+                                    <div class="h4">$${formatNumber(data.key_levels.current_price)}</div>
+                                </div>
+                                
+                                <div class="row mb-3">
+                                    <div class="col-6">
+                                        <small class="text-muted">支撑位</small>
+                                        <div class="h5">$${formatNumber(data.key_levels.support)}</div>
+                                        <small>距离: ${data.key_levels.support_distance_pct}%</small>
+                                    </div>
+                                    <div class="col-6">
+                                        <small class="text-muted">阻力位</small>
+                                        <div class="h5">$${formatNumber(data.key_levels.resistance)}</div>
+                                        <small>距离: ${data.key_levels.resistance_distance_pct}%</small>
+                                    </div>
+                                </div>
+                                
+                                <div class="alert alert-info">
+                                    <i class="bi bi-info-circle me-2"></i>
+                                    价格在支撑和阻力之间震荡，等待突破方向。
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">风险评估</h5>
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <small class="text-muted">下跌风险</small>
+                                        <div class="h4 ${data.risk_assessment.downside_risk > 10 ? 'text-danger' : 'text-success'}">
+                                            ${data.risk_assessment.downside_risk}%
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <small class="text-muted">上涨潜力</small>
+                                        <div class="h4 ${data.risk_assessment.upside_potential > 10 ? 'text-success' : 'text-warning'}">
+                                            ${data.risk_assessment.upside_potential}%
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <small class="text-muted">风险回报比</small>
+                                        <div class="h4 ${data.risk_assessment.risk_reward_ratio > 2 ? 'text-success' : 'text-warning'}">
+                                            ${data.risk_assessment.risk_reward_ratio}:1
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="mt-3">
+                                    <small class="text-muted">交易建议</small>
+                                    <div class="alert ${signalClass}">
+                                        <i class="bi bi-lightbulb me-2"></i>
+                                        ${getTradingAdvice(data.signal_data.signal, data.price_data.price, data.key_levels.support, data.key_levels.resistance)}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                `;
+                
+                document.getElementById('coinDetailTitle').textContent = `${data.symbol} 详情`;
+                document.getElementById('coinDetailContent').innerHTML = modalContent;
+                
+                const modal = new bootstrap.Modal(document.getElementById('coinDetailModal'));
+                modal.show();
+                
+            } catch (error) {
+                console.error('加载币种详情失败:', error);
+                showError('无法加载币种详情');
+            }
+        }
+        
+        // 运行新的分析
+        async function runAnalysis() {
+            try {
+                showLoading('正在运行分析...');
+                
+                const response = await fetch('/api/run_analysis');
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    showSuccess('分析完成！');
+                    // 等待2秒后刷新数据
+                    setTimeout(loadData, 2000);
+                } else {
+                    showError('分析失败: ' + result.message);
+                }
+                
+            } catch (error) {
+                console.error('运行分析失败:', error);
+                showError('无法运行分析');
+            }
+        }
+        
+        // 刷新数据
+        function refreshData() {
+            loadData();
+            showSuccess('数据已刷新');
+        }
+        
+        // 查看所有信号
+        function viewAllSignals() {
+            alert('查看所有信号功能开发中...');
+        }
+        
+        // 导出数据
+        function exportData() {
+            if (!currentData) {
+                showError('没有数据可导出');
+                return;
+            }
+            
+            // 创建CSV内容
+            let csvContent = 'symbol,price,change_percent,signal,score,support,resistance\n';
+            
+            for (const [symbol, priceInfo] of Object.entries(currentData.price_data || {})) {
+                const signalInfo = currentData.composite_signals?.[symbol] || {};
+                csvContent += `${symbol},${priceInfo.price},${priceInfo.change_percent},` +
+                              `${signalInfo.signal || 'NEUTRAL'},${signalInfo.composite_score || 0},` +
+                              `${signalInfo.support || 0},${signalInfo.resistance || 0}\n`;
+            }
+            
+            // 创建下载链接
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `crypto_analysis_${new Date().toISOString().slice(0, 10)}.csv`;
+            link.click();
+            URL.revokeObjectURL(url);
+            
+            showSuccess('数据已导出');
+        }
+        
+        // 查看历史
+        function showHistory() {
+            alert('查看历史功能开发中...');
+        }
+        
+        // 辅助函数
+        function getSignalClass(signal) {
+            switch(signal) {
+                case 'STRONG_BUY': return 'signal-strong-buy';
+                case 'BUY': return 'signal-buy';
+                case 'NEUTRAL': return 'signal-neutral';
+                case 'SELL': return 'signal-sell';
+                case 'STRONG_SELL': return 'signal-strong-sell';
+                default: return 'signal-neutral';
+            }
+        }
+        
+        function formatNumber(num) {
+            if (num >= 1000) {
+                return num.toLocaleString('en-US', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+            }
+            return num.toFixed(2);
+        }
+        
+        function formatVolume(volume) {
+            if (volume >= 1000000000) {
+                return (volume / 1000000000).toFixed(2) + 'B';
+            } else if (volume >= 1000000) {
+                return (volume / 1000000).toFixed(2) + 'M';
+            } else if (volume >= 1000) {
+                return (volume / 1000).toFixed(2) + 'K';
+            }
+            return volume.toFixed(2);
+        }
+        
+        function getTradingAdvice(signal, price, support, resistance) {
+            switch(signal) {
+                case 'STRONG_BUY':
+                    return `强烈建议买入，目标价位 $${formatNumber(resistance)}，止损 $${formatNumber(support)}`;
+                case 'BUY':
+                    return `建议买入，目标价位 $${formatNumber(resistance)}，止损 $${formatNumber(support)}`;
+                case 'NEUTRAL':
+                    return `建议观望，等待价格突破 $${formatNumber(support)} - $${formatNumber(resistance)} 区间`;
+                case 'SELL':
+                    return `建议卖出，目标价位 $${formatNumber(support)}，止损 $${formatNumber(resistance)}`;
+                case 'STRONG_SELL':
+                    return `强烈建议卖出，目标价位 $${formatNumber(support)}，止损 $${formatNumber(resistance)}`;
+                default:
+                    return '暂无交易建议';
+            }
+        }
+        
+        function showLoading(message) {
+            // 简单的加载提示
+            alert(message);
+        }
+        
+        function showSuccess(message) {
+            // 简单的成功提示
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'alert alert-success alert-dismissible fade show position-fixed top-0 end-0 m-3';
+            alertDiv.style.zIndex = '9999';
+            alertDiv.innerHTML = `
+                <i class="bi bi-check-circle me-2"></i>
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            document.body.appendChild(alertDiv);
+            
+            // 3秒后自动移除
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 3000);
+        }
+        
+        function showError(message) {
+            // 简单的错误提示
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'alert alert-danger alert-dismissible fade show position-fixed top-0 end-0 m-3';
+            alertDiv.style.zIndex = '9999';
+            alertDiv.innerHTML = `
+                <i class="bi bi-exclamation-triangle me-2"></i>
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            document.body.appendChild(alertDiv);
+            
+            // 5秒后自动移除
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 5000);
+        }
+    </script>
+</body>
+</html>

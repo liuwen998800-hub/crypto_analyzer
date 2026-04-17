@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>诊断测试</title>
+    <style>
+        body { font-family: monospace; padding: 20px; background: #1e1e1e; color: #fff; }
+        .test { padding: 10px; margin: 5px 0; border-radius: 5px; }
+        .pass { background: #198754; }
+        .fail { background: #dc3545; }
+        .info { background: #0d6efd; }
+        button { padding: 10px 20px; margin: 10px 0; cursor: pointer; }
+        pre { background: #333; padding: 10px; border-radius: 5px; overflow: auto; }
+    </style>
+</head>
+<body>
+    <h1>🔧 前端诊断测试</h1>
+    
+    <button onclick="runTests()">运行诊断测试</button>
+    
+    <div id="results"></div>
+    
+    <h2>手动测试</h2>
+    <button onclick="testAPI()">直接测试API</button>
+    <button onclick="testFetch()">测试Fetch</button>
+    
+    <div id="output"></div>
+    
+    <script>
+        function log(msg, type='info') {
+            const div = document.createElement('div');
+            div.className = 'test ' + type;
+            div.textContent = msg;
+            document.getElementById('results').appendChild(div);
+            console.log(msg);
+        }
+        
+        function runTests() {
+            document.getElementById('results').innerHTML = '';
+            log('开始诊断...', 'info');
+            
+            // 测试1: 检查元素
+            log('测试1: 检查按钮元素', 'info');
+            const btn = document.getElementById('analyzeBtn');
+            log('analyzeBtn存在: ' + (btn !== null), btn ? 'pass' : 'fail');
+            
+            // 测试2: 检查fetch支持
+            log('测试2: fetch API支持', 'info');
+            log('fetch存在: ' + (typeof fetch === 'function'), typeof fetch === 'function' ? 'pass' : 'fail');
+            
+            // 测试3: 检查按钮事件
+            log('测试3: 按钮事件绑定', 'info');
+            if (btn) {
+                btn.onclick = function() { log('按钮点击事件触发!', 'pass'); testAPI(); };
+                log('onclick已绑定', 'pass');
+            }
+            
+            // 测试4: 执行API测试
+            log('测试4: 执行API调用', 'info');
+            testAPI();
+        }
+        
+        async function testAPI() {
+            const output = document.getElementById('output');
+            output.innerHTML = '<p>正在调用API...</p>';
+            
+            try {
+                log('发送POST请求到 /api/analyze', 'info');
+                
+                const response = await fetch('/api/analyze', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        symbol: 'BTC',
+                        timeframe: '1h',
+                        ai_model: 'both'
+                    })
+                });
+                
+                log('响应状态: ' + response.status, response.ok ? 'pass' : 'fail');
+                
+                const data = await response.json();
+                log('数据接收成功!', 'pass');
+                log('价格: $' + data.price_data.current_price, 'pass');
+                log('信号: ' + data.signal.signal, 'pass');
+                
+                output.innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+                
+            } catch (error) {
+                log('API调用失败: ' + error.message, 'fail');
+                output.innerHTML = '<p style="color: red;">错误: ' + error.message + '</p>';
+            }
+        }
+        
+        function testFetch() {
+            log('测试fetch函数...', 'info');
+            fetch('/api/status')
+                .then(r => r.json())
+                .then(d => {
+                    log('Status API响应: ' + d.status, 'pass');
+                })
+                .catch(e => {
+                    log('Fetch错误: ' + e.message, 'fail');
+                });
+        }
+        
+        // 页面加载时自动运行基本测试
+        window.onload = function() {
+            log('页面加载完成', 'info');
+            log('window.location: ' + window.location.href, 'info');
+            log('document.readyState: ' + document.readyState, 'pass');
+        };
+    </script>
+</body>
+</html>
