@@ -373,23 +373,68 @@
                 var dsColor = ds.direction === 'bullish' ? '#28a745' : ds.direction === 'bearish' ? '#dc3545' : '#ffc107';
                 
                 html += '<div class="ai-model-card deepseek">';
-                html += '<div class="ai-model-title"><span style="color:#28a745">🤖</span> DeepSeek分析</div>';
+                html += '<div class="ai-model-title"><span style="color:#28a745">🤖</span> DeepSeek技术分析</div>';
                 html += '<div style="margin: 10px 0;">';
-                html += '<p><strong>ai建议买入卖出信号:</strong> <span style="color:' + dsColor + ';font-weight:bold;">' + dsDir + '</span></p>';
-                html += '<p><strong>涨的置信度多少:</strong> <span style="color:#28a745">' + ds.bullish_confidence + '%</span></p>';
-                html += '<p><strong>跌的置信度多少:</strong> <span style="color:#dc3545">' + ds.bearish_confidence + '%</span></p>';
+                html += '<p><strong>方向:</strong> <span style="color:' + dsColor + ';font-weight:bold;">' + dsDir + '</span></p>';
+                html += '<p><strong>看涨置信度:</strong> <span style="color:#28a745">' + ds.bullish_confidence + '%</span></p>';
+                html += '<p><strong>看跌置信度:</strong> <span style="color:#dc3545">' + ds.bearish_confidence + '%</span></p>';
                 html += '<p><strong>综合置信度:</strong> ' + ds.confidence + '%</p>';
                 html += '</div>';
                 
-                // 震荡指标
-                if (ds.analysis_details) {
+                // 完整推理文本
+                if (ds.reasoning) {
                     html += '<div style="background:#fff;padding:10px;border-radius:5px;margin-top:10px;">';
-                    html += '<p style="margin:5px 0;font-weight:bold;">震荡指标:</p>';
-                    for (var key in ds.analysis_details) {
-                        html += '<p style="margin:3px 0;font-size:13px;">' + ds.analysis_details[key] + '</p>';
+                    html += '<p style="margin:5px 0;font-weight:bold;">📝 详细推理:</p>';
+                    var reasoningLines = ds.reasoning.split('\n');
+                    for (var j = 0; j < reasoningLines.length; j++) {
+                        var line = reasoningLines[j];
+                        if (line.trim()) {
+                            html += '<p style="margin:3px 0;font-size:13px;line-height:1.4;">' + line + '</p>';
+                        }
                     }
                     html += '</div>';
                 }
+                
+                // 分析详情
+                if (ds.analysis_details) {
+                    html += '<div style="background:#fff;padding:10px;border-radius:5px;margin-top:10px;">';
+                    html += '<p style="margin:5px 0;font-weight:bold;">📊 技术指标详情:</p>';
+                    for (var key in ds.analysis_details) {
+                        html += '<p style="margin:3px 0;font-size:13px;"><strong>' + key + ':</strong> ' + ds.analysis_details[key] + '</p>';
+                    }
+                    html += '</div>';
+                }
+                
+                // 关键支撑位
+                if (ds.key_support_levels && ds.key_support_levels.length > 0) {
+                    html += '<div style="background:#fff;padding:10px;border-radius:5px;margin-top:10px;">';
+                    html += '<p style="margin:5px 0;font-weight:bold;color:#28a745;">📉 关键支撑位:</p>';
+                    for (var i = 0; i < ds.key_support_levels.length; i++) {
+                        var support = ds.key_support_levels[i];
+                        html += '<p style="margin:3px 0;font-size:13px;">' + (i+1) + '. $' + support.level.toLocaleString() + ' (' + support.type + ', 强度: ' + support.strength + '%)</p>';
+                    }
+                    html += '</div>';
+                }
+                
+                // 关键阻力位
+                if (ds.key_resistance_levels && ds.key_resistance_levels.length > 0) {
+                    html += '<div style="background:#fff;padding:10px;border-radius:5px;margin-top:10px;">';
+                    html += '<p style="margin:5px 0;font-weight:bold;color:#dc3545;">📈 关键阻力位:</p>';
+                    for (var i = 0; i < ds.key_resistance_levels.length; i++) {
+                        var resistance = ds.key_resistance_levels[i];
+                        html += '<p style="margin:3px 0;font-size:13px;">' + (i+1) + '. $' + resistance.level.toLocaleString() + ' (' + resistance.type + ', 强度: ' + resistance.strength + '%)</p>';
+                    }
+                    html += '</div>';
+                }
+                
+                // 总结
+                if (ds.summary) {
+                    html += '<div style="background:#f8f9fa;padding:10px;border-radius:5px;margin-top:10px;border-left:3px solid #28a745;">';
+                    html += '<p style="margin:0;font-weight:bold;">💡 DeepSeek总结:</p>';
+                    html += '<p style="margin:5px 0 0 0;font-size:13px;">' + ds.summary + '</p>';
+                    html += '</div>';
+                }
+                
                 html += '</div>';
             }
             
@@ -401,23 +446,70 @@
                 var sentiment = mm.sentiment_details || {};
                 
                 html += '<div class="ai-model-card minimax">';
-                html += '<div class="ai-model-title"><span style="color:#dc3545">🧠</span> MiniMax分析</div>';
+                html += '<div class="ai-model-title"><span style="color:#dc3545">🧠</span> MiniMax情绪分析</div>';
                 html += '<div style="margin: 10px 0;">';
-                html += '<p><strong>ai建议买入卖出信号:</strong> <span style="color:' + mmColor + ';font-weight:bold;">' + mmDir + '</span></p>';
-                html += '<p><strong>涨的置信度多少:</strong> <span style="color:#28a745">' + mm.bullish_confidence + '%</span></p>';
-                html += '<p><strong>跌的置信度多少:</strong> <span style="color:#dc3545">' + mm.bearish_confidence + '%</span></p>';
+                html += '<p><strong>方向:</strong> <span style="color:' + mmColor + ';font-weight:bold;">' + mmDir + '</span></p>';
+                html += '<p><strong>看涨置信度:</strong> <span style="color:#28a745">' + mm.bullish_confidence + '%</span></p>';
+                html += '<p><strong>看跌置信度:</strong> <span style="color:#dc3545">' + mm.bearish_confidence + '%</span></p>';
                 html += '<p><strong>综合置信度:</strong> ' + mm.confidence + '%</p>';
                 html += '</div>';
                 
-                // 市场情绪
-                if (sentiment) {
+                // 完整推理文本
+                if (mm.reasoning) {
                     html += '<div style="background:#fff;padding:10px;border-radius:5px;margin-top:10px;">';
-                    html += '<p style="margin:5px 0;font-weight:bold;">市场情绪:</p>';
-                    html += '<p style="margin:3px 0;font-size:13px;">恐慌指数: ' + (sentiment.fear_greed_index || '--') + ' (' + (sentiment.fear_greed_classification || '--') + ')</p>';
-                    html += '<p style="margin:3px 0;font-size:13px;">风险等级: ' + (sentiment.risk_level || '--') + '</p>';
-                    html += '<p style="margin:3px 0;font-size:13px;">价格动能: ' + (sentiment.price_momentum || '--') + ' (' + (sentiment.price_change_pct || 0).toFixed(2) + '%)</p>';
+                    html += '<p style="margin:5px 0;font-weight:bold;">📝 详细推理:</p>';
+                    var reasoningLines = mm.reasoning.split('\n');
+                    for (var j = 0; j < reasoningLines.length; j++) {
+                        var line = reasoningLines[j];
+                        if (line.trim()) {
+                            html += '<p style="margin:3px 0;font-size:13px;line-height:1.4;">' + line + '</p>';
+                        }
+                    }
                     html += '</div>';
                 }
+                
+                // 市场情绪详情
+                if (sentiment) {
+                    html += '<div style="background:#fff;padding:10px;border-radius:5px;margin-top:10px;">';
+                    html += '<p style="margin:5px 0;font-weight:bold;">📊 市场情绪详情:</p>';
+                    html += '<p style="margin:3px 0;font-size:13px;"><strong>恐慌贪婪指数:</strong> ' + (sentiment.fear_greed_index || '--') + ' (' + (sentiment.fear_greed_classification || '--') + ')</p>';
+                    html += '<p style="margin:3px 0;font-size:13px;"><strong>风险等级:</strong> ' + (sentiment.risk_level || '--') + '</p>';
+                    html += '<p style="margin:3px 0;font-size:13px;"><strong>价格动能:</strong> ' + (sentiment.price_momentum || '--') + ' (' + (sentiment.price_change_pct || 0).toFixed(2) + '%)</p>';
+                    html += '<p style="margin:3px 0;font-size:13px;"><strong>市场情绪:</strong> ' + (sentiment.market_sentiment || '--') + '</p>';
+                    html += '<p style="margin:3px 0;font-size:13px;"><strong>交易建议:</strong> ' + (sentiment.trading_advice || '--') + '</p>';
+                    html += '</div>';
+                }
+                
+                // 关键支撑位
+                if (mm.key_support_levels && mm.key_support_levels.length > 0) {
+                    html += '<div style="background:#fff;padding:10px;border-radius:5px;margin-top:10px;">';
+                    html += '<p style="margin:5px 0;font-weight:bold;color:#28a745;">📉 关键支撑位:</p>';
+                    for (var i = 0; i < mm.key_support_levels.length; i++) {
+                        var support = mm.key_support_levels[i];
+                        html += '<p style="margin:3px 0;font-size:13px;">' + (i+1) + '. $' + support.level.toLocaleString() + ' (' + support.type + ', 强度: ' + support.strength + '%)</p>';
+                    }
+                    html += '</div>';
+                }
+                
+                // 关键阻力位
+                if (mm.key_resistance_levels && mm.key_resistance_levels.length > 0) {
+                    html += '<div style="background:#fff;padding:10px;border-radius:5px;margin-top:10px;">';
+                    html += '<p style="margin:5px 0;font-weight:bold;color:#dc3545;">📈 关键阻力位:</p>';
+                    for (var i = 0; i < mm.key_resistance_levels.length; i++) {
+                        var resistance = mm.key_resistance_levels[i];
+                        html += '<p style="margin:3px 0;font-size:13px;">' + (i+1) + '. $' + resistance.level.toLocaleString() + ' (' + resistance.type + ', 强度: ' + resistance.strength + '%)</p>';
+                    }
+                    html += '</div>';
+                }
+                
+                // 总结
+                if (mm.summary) {
+                    html += '<div style="background:#f8f9fa;padding:10px;border-radius:5px;margin-top:10px;border-left:3px solid #dc3545;">';
+                    html += '<p style="margin:0;font-weight:bold;">💡 MiniMax总结:</p>';
+                    html += '<p style="margin:5px 0 0 0;font-size:13px;">' + mm.summary + '</p>';
+                    html += '</div>';
+                }
+                
                 html += '</div>';
             }
             

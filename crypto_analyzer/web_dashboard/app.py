@@ -428,7 +428,18 @@ def get_real_price(symbol):
         return None
 
 def get_fear_greed_index():
-    """获取恐惧贪婪指数"""
+    """获取恐惧贪婪指数 - 优先使用CoinyBubble，备用alternative.me"""
+    # 优先从CoinyBubble获取
+    try:
+        url = "https://api.coinybubble.com/v1/latest"
+        req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+        response = urllib.request.urlopen(req, timeout=10)
+        data = json.loads(response.read().decode())
+        return int(data['actual_value'])
+    except Exception as e:
+        logger.warning(f"从CoinyBubble获取恐惧指数失败: {e}")
+    
+    # 备用从alternative.me获取
     try:
         url = "https://api.alternative.me/fng/?limit=1"
         req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
@@ -436,12 +447,12 @@ def get_fear_greed_index():
         data = json.loads(response.read().decode())
         return int(data['data'][0]['value'])
     except Exception as e:
-        logger.error(f"获取恐惧指数失败: {e}")
+        logger.error(f"从alternative.me获取恐惧指数也失败: {e}")
         return 30  # 默认恐慌值
 
 # ==================== 双模型独立分析 ====================
 
-def analyze_with_deepseek(symbol, timeframe, price_data, technical_indicators):
+def analyze_with_deepseek(symbol, timeframe, price_data, technical_indicators, fear_greed_index=30):
     """
     DeepSeek模型分析 - 专业技术分析
     专注于技术指标和价格走势，提供详细多空置信率和支撑阻力位
@@ -547,6 +558,30 @@ def analyze_with_deepseek(symbol, timeframe, price_data, technical_indicators):
     else:
         direction = 'neutral'
     
+    # 贪婪指数分析
+    fear_greed_text = ''
+    fear_greed_advice = ''
+    if fear_greed_index < 20:
+        fear_greed_text = '极度恐慌'
+        fear_greed_advice = '恐慌往往是买入机会'
+    elif fear_greed_index < 30:
+        fear_greed_text = '严重恐慌'
+        fear_greed_advice = '严重恐慌，关注超跌反弹机会'
+    elif fear_greed_index < 45:
+        fear_greed_text = '恐慌'
+        fear_greed_advice = '恐慌区域，关注反弹机会'
+    elif fear_greed_index < 55:
+        fear_greed_text = '中性'
+        fear_greed_advice = '市场情绪平稳'
+    elif fear_greed_index < 70:
+        fear_greed_text = '贪婪'
+        fear_greed_advice = '贪婪区域，注意回调风险'
+    elif fear_greed_index < 85:
+        fear_greed_text = '严重贪婪'
+        fear_greed_advice = '严重贪婪，市场可能过热'
+    else:
+        fear_greed_text = '极度贪婪'
+        fear_greed_advice = '极度贪婪，回调风险极高'
     # 生成详细推理
     reasoning = f"【DeepSeek技术分析】{symbol}技术面{'看涨' if direction == 'bullish' else '看跌' if direction == 'bearish' else '中性'}。\n"
     reasoning += f"\n【核心指标详情】\n"
@@ -554,15 +589,34 @@ def analyze_with_deepseek(symbol, timeframe, price_data, technical_indicators):
     reasoning += f"• MACD(指数平滑异同移动平均线): {macd:.4f} - {macd_status}，权重30%\n"
     reasoning += f"• 移动平均线(MA): {ma_status}，权重25%\n"
     reasoning += f"• 布林带(BOLL): 位置{bb_pos:.1f}% - {bb_status}，权重20%\n"
+    reasoning += f"\n【市场情绪分析】\n"
+    reasoning += f"• 恐慌贪婪指数: {fear_greed_index}分({fear_greed_text}) - {fear_greed_advice}\n"
     reasoning += f"\n【多空分析】\n"
     reasoning += f"• 看涨置信度: {bullish_confidence}%\n"
     reasoning += f"• 看跌置信度: {bearish_confidence}%\n"
+    
+    # 结合技术面和情绪面的结论
     if direction == 'bullish':
-        reasoning += f"\n【结论】多项指标显示底部信号，但需警惕回调风险。"
+        if fear_greed_index < 45:
+            reasoning += f"\n【综合结论】技术面看涨 + 市场恐慌 = 强烈买入信号。恐慌情绪提供安全边际。"
+        elif fear_greed_index < 70:
+            reasoning += f"\n【综合结论】技术面看涨，市场情绪中性偏贪婪，可逢低布局。"
+        else:
+            reasoning += f"\n【综合结论】技术面看涨但市场极度贪婪，需警惕回调风险，建议分批建仓。"
     elif direction == 'bearish':
-        reasoning += f"\n【结论】技术面偏弱，可能继续下探，建议观望。"
+        if fear_greed_index < 45:
+            reasoning += f"\n【综合结论】技术面看跌 + 市场恐慌 = 风险较高，建议观望等待企稳。"
+        elif fear_greed_index < 70:
+            reasoning += f"\n【综合结论】技术面看跌，市场情绪中性，建议减仓观望。"
+        else:
+            reasoning += f"\n【综合结论】技术面看跌 + 市场贪婪 = 可能大幅回调，建议及时止盈。"
     else:
-        reasoning += f"\n【结论】技术面信号混杂，建议等待方向明确。"
+        if fear_greed_index < 45:
+            reasoning += f"\n【综合结论】技术面中性 + 市场恐慌 = 可能超跌反弹机会，可小仓位试探。"
+        elif fear_greed_index < 70:
+            reasoning += f"\n【综合结论】技术面中性，市场情绪平稳，建议等待方向明确。"
+        else:
+            reasoning += f"\n【综合结论】技术面中性 + 市场贪婪 = 风险较高，建议谨慎操作。"
     
     # 生成关键支撑阻力位
     support_1 = round(current_price * 0.97, 2)
@@ -589,6 +643,15 @@ def analyze_with_deepseek(symbol, timeframe, price_data, technical_indicators):
         'bullish_confidence': bullish_confidence,
         'bearish_confidence': bearish_confidence,
         'reasoning': reasoning,
+        'sentiment_details': {
+            'fear_greed_index': fear_greed_index,
+            'fear_greed_classification': fear_greed_text,
+            'fear_greed_advice': fear_greed_advice,
+            'technical_bullish': bullish_confidence,
+            'technical_bearish': bearish_confidence,
+            'overall_direction': direction,
+            'recommendation': '分批建仓' if direction == 'bullish' and fear_greed_index < 45 else '持有观察' if direction == 'neutral' else '减仓观望'
+        },
         'analysis_details': {
             'rsi': f"RSI: {core.get('rsi',{}).get('value', 50):.1f} - {rsi_status}",
             'macd': f"MACD: {core.get('macd',{}).get('value', 0):.2f} - {macd_status}",
@@ -605,7 +668,7 @@ def analyze_with_deepseek(symbol, timeframe, price_data, technical_indicators):
             {'level': resistance_2, 'strength': 70, 'type': '中阻力'},
             {'level': resistance_3, 'strength': 55, 'type': '弱阻力'}
         ],
-        'summary': f"看涨置信率{bullish_confidence}%，看跌置信率{bearish_confidence}%。关键支撑${support_1:,.0f}，关键阻力${resistance_1:,.0f}。"
+        'summary': f"看涨置信率{bullish_confidence}%，看跌置信率{bearish_confidence}%。恐慌指数{fear_greed_index}({fear_greed_text})。关键支撑${support_1:,.0f}，关键阻力${resistance_1:,.0f}。"
     }
 
 def analyze_with_minimax(symbol, timeframe, price_data, technical_indicators, fear_greed_index=30):
@@ -722,24 +785,45 @@ def analyze_with_minimax(symbol, timeframe, price_data, technical_indicators, fe
         direction = 'neutral'
     
     # 生成详细推理
+    reasoning = f"【MiniMax情绪分析】{symbol}情绪面{'看涨' if direction == 'bullish' else '看跌' if direction == 'bearish' else '中性'}。\n"
+    reasoning += f"\n【市场情绪详情】\n"
+    reasoning += f"• 恐慌贪婪指数: {fear_greed}分({emotion_text}) - {emotion_advice}\n"
+    reasoning += f"• 情绪看涨置信度: {emotion_bullish}%\n"
+    reasoning += f"• 情绪看跌置信度: {emotion_bearish}%\n"
+    reasoning += f"• 情绪信号: {emotion_signal}\n"
+    reasoning += f"\n【价格动能分析】\n"
+    reasoning += f"• 24小时涨跌: {price_change:+.2f}%({momentum_text}) - {momentum_advice}\n"
+    reasoning += f"• 动能看涨置信度: {momentum_bullish}%\n"
+    reasoning += f"• 动能看跌置信度: {momentum_bearish}%\n"
+    reasoning += f"\n【风险评估】\n"
+    reasoning += f"• 风险等级: {risk_level} - {risk_advice}\n"
+    reasoning += f"• 当前价格: ${current_price:,.2f}\n"
+    reasoning += f"\n【多空分析】\n"
+    reasoning += f"• 综合看涨置信度: {bullish_confidence}%\n"
+    reasoning += f"• 综合看跌置信度: {bearish_confidence}%\n"
+    
+    # 详细结论
     if direction == 'bullish':
-        reasoning = f"【MiniMax情绪分析】{symbol}看涨。"
-        reasoning += f"\n• 市场情绪: {emotion_text}({fear_greed}分)，{emotion_advice}。"
-        reasoning += f"\n• 价格动能: {momentum_text}({price_change:+.2f}%)，{momentum_advice}。"
-        reasoning += f"\n• 风险评估: {risk_level}，{risk_advice}。"
-        reasoning += f"\n• 操作建议: 恐慌区域可考虑分批建仓，注意控制仓位。"
+        if fear_greed < 45:
+            reasoning += f"\n【综合结论】市场恐慌 + 价格动能{price_change:+.2f}% = 强烈买入信号。恐慌情绪提供安全边际，建议分批建仓。"
+        elif fear_greed < 70:
+            reasoning += f"\n【综合结论】市场情绪中性偏贪婪 + 价格动能{price_change:+.2f}% = 谨慎看涨。建议逢低布局，控制仓位。"
+        else:
+            reasoning += f"\n【综合结论】市场极度贪婪 + 价格动能{price_change:+.2f}% = 高风险看涨。需警惕回调风险，建议轻仓试探。"
     elif direction == 'bearish':
-        reasoning = f"【MiniMax情绪分析】{symbol}看跌。"
-        reasoning += f"\n• 市场情绪: {emotion_text}({fear_greed}分)，{emotion_advice}。"
-        reasoning += f"\n• 价格动能: {momentum_text}({price_change:+.2f}%)，{momentum_advice}。"
-        reasoning += f"\n• 风险评估: {risk_level}，{risk_advice}。"
-        reasoning += f"\n• 操作建议: 建议减仓或观望，等待情绪稳定。"
+        if fear_greed < 45:
+            reasoning += f"\n【综合结论】市场恐慌 + 价格动能{price_change:+.2f}% = 高风险看跌。建议观望等待企稳，避免抄底。"
+        elif fear_greed < 70:
+            reasoning += f"\n【综合结论】市场情绪中性 + 价格动能{price_change:+.2f}% = 看跌信号。建议减仓观望，等待情绪好转。"
+        else:
+            reasoning += f"\n【综合结论】市场贪婪 + 价格动能{price_change:+.2f}% = 可能大幅回调。建议及时止盈，规避风险。"
     else:
-        reasoning = f"【MiniMax情绪分析】{symbol}中性。"
-        reasoning += f"\n• 市场情绪: {emotion_text}({fear_greed}分)，{emotion_advice}。"
-        reasoning += f"\n• 价格动能: {momentum_text}({price_change:+.2f}%)，{momentum_advice}。"
-        reasoning += f"\n• 风险评估: {risk_level}，{risk_advice}。"
-        reasoning += f"\n• 操作建议: 建议持有观察，等待方向明确。"
+        if fear_greed < 45:
+            reasoning += f"\n【综合结论】市场恐慌 + 价格动能{price_change:+.2f}% = 可能超跌反弹。可小仓位试探，严格止损。"
+        elif fear_greed < 70:
+            reasoning += f"\n【综合结论】市场情绪平稳 + 价格动能{price_change:+.2f}% = 中性震荡。建议等待方向明确，观望为主。"
+        else:
+            reasoning += f"\n【综合结论】市场贪婪 + 价格动能{price_change:+.2f}% = 高风险中性。建议谨慎操作，控制风险。"
     
     # 生成关键支撑阻力位 (基于市场情绪和价格波动)
     volatility = abs(price_change) / 100
@@ -1006,8 +1090,8 @@ def generate_complete_analysis(symbol, timeframe, ai_model='both'):
     technical_score = min(100, technical_score)
     
     # 双模型分析
-    deepseek_result = analyze_with_deepseek(symbol, timeframe, price_data, technical_indicators)
     fear_greed = technical_indicators['market_sentiment']['fear_greed_index']
+    deepseek_result = analyze_with_deepseek(symbol, timeframe, price_data, technical_indicators, fear_greed)
     minimax_result = analyze_with_minimax(symbol, timeframe, price_data, technical_indicators, fear_greed)
     
     # 根据选择的模型返回结果

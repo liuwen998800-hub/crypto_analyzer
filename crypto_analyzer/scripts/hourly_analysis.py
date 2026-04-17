@@ -132,7 +132,7 @@ class HourlyAnalyzer:
             
             # 4. AI分析
             ai_analysis = self.ai_analyzer.analyze_with_dual_models(
-                symbol, price_info, technical_data
+                symbol, price_info, technical_data, fear_greed_data=sentiment_data.get('fear_greed_index', None)
             )
             
             # 5. 情绪分析

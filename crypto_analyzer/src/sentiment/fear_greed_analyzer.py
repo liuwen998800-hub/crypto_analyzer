@@ -30,7 +30,8 @@ class FearGreedAnalyzer:
         
         # 数据源配置
         self.data_sources = {
-            'alternative_me': 'https://api.alternative.me/fng/',  # 免费API
+            'coinybubble': 'https://api.coinybubble.com/v1/latest',  # 免费API，优先使用
+            'alternative_me': 'https://api.alternative.me/fng/',  # 备用免费API
             'twitter': None,  # 需要Twitter API
             'reddit': None,   # 需要Reddit API
             'news': None      # 需要新闻API
@@ -57,8 +58,12 @@ class FearGreedAnalyzer:
                 return cached_data
         
         try:
-            # 尝试从多个数据源获取
-            fgi_data = self._fetch_from_alternative_me()
+            # 优先从CoinyBubble获取
+            fgi_data = self._fetch_from_coinybubble()
+            
+            if not fgi_data:
+                # 如果CoinyBubble失败，尝试Alternative.me
+                fgi_data = self._fetch_from_alternative_me()
             
             if not fgi_data:
                 # 如果主要数据源失败，使用模拟数据
@@ -76,6 +81,32 @@ class FearGreedAnalyzer:
         except Exception as e:
             logger.error(f"计算恐慌贪婪指数失败: {e}")
             return self._generate_mock_fgi()
+    
+    def _fetch_from_coinybubble(self) -> Optional[Dict]:
+        """从CoinyBubble获取恐慌贪婪指数"""
+        try:
+            response = requests.get(
+                self.data_sources['coinybubble'],
+                timeout=10
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                value = data.get('actual_value', 50)
+                return {
+                    'value': int(value),
+                    'classification': self._classify_fgi(value),
+                    'timestamp': data.get('timestamp', time.time()),
+                    'bitcoin_price_usd': data.get('bitcoin_price_usd', 0),
+                    'previous_value': data.get('previous_value', value),
+                    'source': 'coinybubble'
+                }
+            
+            return None
+            
+        except Exception as e:
+            logger.warning(f"从CoinyBubble获取数据失败: {e}")
+            return None
     
     def _fetch_from_alternative_me(self) -> Optional[Dict]:
         """从Alternative.me获取恐慌贪婪指数"""

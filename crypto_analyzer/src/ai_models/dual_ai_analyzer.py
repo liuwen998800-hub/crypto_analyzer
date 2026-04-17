@@ -60,7 +60,7 @@ class DualAIAnalyzer:
         if not self.deepseek_client and not self.minimax_client:
             logger.warning("未配置任何AI模型，将使用模拟分析")
     
-    def analyze_with_deepseek(self, symbol: str, market_data: Dict, technical_data: Dict) -> Dict:
+    def analyze_with_deepseek(self, symbol: str, market_data: Dict, technical_data: Dict, fear_greed_data: Dict = None) -> Dict:
         """
         使用DeepSeek分析
         
@@ -68,6 +68,7 @@ class DualAIAnalyzer:
             symbol: 币种符号
             market_data: 市场数据
             technical_data: 技术分析数据
+            fear_greed_data: 恐慌贪婪指数数据
             
         Returns:
             DeepSeek分析结果
@@ -77,7 +78,7 @@ class DualAIAnalyzer:
         
         try:
             # 构建分析提示
-            prompt = self._build_analysis_prompt(symbol, market_data, technical_data, 'deepseek')
+            prompt = self._build_analysis_prompt(symbol, market_data, technical_data, fear_greed_data)
             
             # 调用DeepSeek API
             response = self.deepseek_client.chat.completions.create(
@@ -105,7 +106,7 @@ class DualAIAnalyzer:
             logger.error(f"DeepSeek分析失败: {e}")
             return self._get_mock_analysis('deepseek', symbol)
     
-    def analyze_with_minimax(self, symbol: str, market_data: Dict, technical_data: Dict) -> Dict:
+    def analyze_with_minimax(self, symbol: str, market_data: Dict, technical_data: Dict, fear_greed_data: Dict = None) -> Dict:
         """
         使用MiniMax分析
         
@@ -113,6 +114,7 @@ class DualAIAnalyzer:
             symbol: 币种符号
             market_data: 市场数据
             technical_data: 技术分析数据
+            fear_greed_data: 恐慌贪婪指数数据
             
         Returns:
             MiniMax分析结果
@@ -122,7 +124,7 @@ class DualAIAnalyzer:
         
         try:
             # 构建分析提示
-            prompt = self._build_analysis_prompt(symbol, market_data, technical_data, 'minimax')
+            prompt = self._build_analysis_prompt(symbol, market_data, technical_data, fear_greed_data)
             
             # 调用MiniMax API
             response = self.minimax_client.messages.create(
@@ -149,7 +151,7 @@ class DualAIAnalyzer:
             logger.error(f"MiniMax分析失败: {e}")
             return self._get_mock_analysis('minimax', symbol)
     
-    def analyze_with_dual_models(self, symbol: str, market_data: Dict, technical_data: Dict) -> Dict:
+    def analyze_with_dual_models(self, symbol: str, market_data: Dict, technical_data: Dict, fear_greed_data: Dict = None) -> Dict:
         """
         使用双模型分析
         
@@ -157,13 +159,14 @@ class DualAIAnalyzer:
             symbol: 币种符号
             market_data: 市场数据
             technical_data: 技术分析数据
+            fear_greed_data: 恐慌贪婪指数数据
             
         Returns:
             双模型综合分析结果
         """
         # 并行调用两个模型
-        deepseek_result = self.analyze_with_deepseek(symbol, market_data, technical_data)
-        minimax_result = self.analyze_with_minimax(symbol, market_data, technical_data)
+        deepseek_result = self.analyze_with_deepseek(symbol, market_data, technical_data, fear_greed_data)
+        minimax_result = self.analyze_with_minimax(symbol, market_data, technical_data, fear_greed_data)
         
         # 计算一致性评分
         consensus_score = self._calculate_consensus(deepseek_result, minimax_result)
@@ -197,10 +200,22 @@ class DualAIAnalyzer:
         logger.info(f"双模型分析完成: {symbol}, 一致性: {consensus_score}, 置信度: {ai_confidence}")
         return result
     
-    def _build_analysis_prompt(self, symbol: str, market_data: Dict, technical_data: Dict, model_type: str) -> str:
+    def _build_analysis_prompt(self, symbol: str, market_data: Dict, technical_data: Dict, fear_greed_data: Dict = None) -> str:
         """构建分析提示"""
         current_price = market_data.get('price', 0)
         price_change_24h = market_data.get('24h_change', 0)
+        
+        # 恐慌贪婪指数
+        fear_greed_section = ""
+        if fear_greed_data:
+            fg_value = fear_greed_data.get('value', 0)
+            fg_class = fear_greed_data.get('classification', 'Unknown')
+            fg_source = fear_greed_data.get('source', 'Unknown')
+            fear_greed_section = f"""
+恐慌贪婪指数 (CoinyBubble):
+- 指数值: {fg_value}/100 ({fg_class})
+- 数据来源: {fg_source}
+"""
         
         # 技术指标摘要
         tech_summary = ""
@@ -235,6 +250,7 @@ class DualAIAnalyzer:
 - 24小时低点: ${market_data.get('24h_low', 0):,.2f}
 - 24小时成交量: ${market_data.get('24h_volume', 0):,.0f}
 
+{fear_greed_section}
 {tech_summary}
 {sr_levels}
 
